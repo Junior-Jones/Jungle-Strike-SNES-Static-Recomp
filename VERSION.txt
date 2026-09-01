@@ -1,0 +1,101 @@
+Jungle Strike (SNES) Static Recompilation
+Version: 1.0.0
+Platform: Native 64-bit Windows 10 and Windows 11
+Executable: Launcher.exe
+ROM: Required externally; not included
+
+Version 1.0.0 frontend features
+--------------------------------
+
+- Native Win32 launcher, menus, toolbar, settings windows and accessible
+  keyboard navigation.
+- Portable Release build with the Visual C++ runtime and SDL3 gamepad support
+  statically linked; no separate SDL DLL is required.
+- Windowed and full-screen presentation with optional integer scaling.
+- Natural NTSC frame lock enabled by default. It follows the SNES timing ratio
+  of 39,375,000 / 655,171, approximately 60.0988 frames per second, rather
+  than forcing an inaccurate 60.000 Hz clock.
+- Optional live FPS display in the title bar, disabled by default.
+- F8 game-frame screenshots in windowed mode and complete presented-screen
+  screenshots while full screen is active.
+- Configurable keyboard or SDL3 gamepad controls, accessible and classic
+  keyboard layouts, gamepad rebinding, opposing-direction filtering and one
+  input snapshot per emulated frame.
+- Full Screen When Playing, Auto-Run, Pause on Focus Loss and integer-scaling
+  settings saved in settings.ini beside Launcher.exe.
+- Escape switches between gameplay and the launcher without resetting the
+  static machine.
+- A first-run Welcome window, About information and keyboard-accessible
+  Settings, Controller Bindings and Audio Settings windows.
+- The Rom folder is included empty. Screenshots, Saves and Logs are created
+  only when the application has a file to write.
+- Five complete snapshot slots save S-CPU, scheduler, DMA, PPU, input,
+  S-SMP, S-DSP, ARAM and rendered-frame state. Snapshot files are versioned,
+  integrity checked and replaced atomically. Press 1 to save the selected
+  slot and 2 to load it; the selected slot is retained in settings.ini.
+  Loading pauses and flushes the existing DirectSound ring without reopening
+  the host device from inside the snapshot window.
+- Jungle Strike uses passwords and has no battery-backed save RAM; snapshot
+  slots are independent complete-machine saves.
+- Compact exact-context S-CPU authority: 27,835 contexts are represented by
+  219 frozen semantic templates across 77 shards, without runtime decoding,
+  learning or fallback. This reduces Launcher.exe by 40.85% while preserving
+  the predecessor execution semantics.
+
+Frontend audio
+--------------
+
+The static core is the only audio producer. It executes the game's compiled
+SPC700/S-SMP program and exact 32-phase S-DSP pipeline, producing native
+32,040 Hz signed 16-bit stereo PCM. The frontend never substitutes captured
+music, streamed assets, a third-party APU emulator or a host synthesizer.
+
+Completed DSP batches are drained during the emulated frame into a bounded
+frontend FIFO so rendering cannot hold audio until the end of a slow frame.
+The Windows output path uses DirectSound with a circular secondary buffer.
+Native 32,040 Hz PCM is converted to the selected output rate, 48,000 Hz by
+default, through the selectable Hermite or linear resampler. The default
+Hermite mode interpolates smoothly without changing the core's clock.
+
+The Audio Settings window provides output enable, device, volume, optional
+0-40 ms forced latency, output rate, resampler, safety-buffer size, drift
+correction, correction tolerance, maximum rate adjustment, averaging window,
+integral correction, underrun recovery, recovery threshold, underrun
+realignment and resume fade. Forced latency is disabled by default. Queue
+depth is measured from the real DirectSound play cursor, and bounded drift
+correction makes small resampling-ratio adjustments around the native rate to
+keep the device queue centred without accumulating seconds of delay.
+
+Audio diagnostics display the device rate, queue depth, target depth, average
+latency, playback ratio, native frames submitted, underruns, recoveries,
+queue failures, stale frames dropped and device reopen count.
+
+Failure logging
+---------------
+
+The static core always fails closed. If execution reaches an S-CPU, S-SMP,
+S-DSP, PPU or machine state that is outside compiled production authority,
+the application pauses immediately and creates:
+
+  Logs\Static-Core-Failure-YYYYMMDD-HHMMSS-mmm.txt
+
+A large read-only error window then shows the stop code, processor, reason,
+frame, master clock, current/source/target contexts, expected successors,
+recent execution history and log path. The text log also records complete
+machine, timing, audio, input, PPU and state-hash diagnostics. The window has
+one Close button; closing it does not enable an emulator fallback.
+
+Keyboard shortcuts
+------------------
+
+Escape  Play or pause; switch between the game and launcher
+F1      Welcome and shortcut help
+F2      Save Snapshot window
+F3      Load Snapshot window
+F4      Settings
+F5      Controller Bindings
+F6      Audio Settings
+F7      Run the selected ROM
+F8      Capture a screenshot
+1       Save the current snapshot slot
+2       Load the current snapshot slot
