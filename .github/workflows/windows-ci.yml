@@ -1,0 +1,37 @@
+name: Windows CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows-build-test:
+    name: windows-build-test
+    runs-on: windows-2022
+    timeout-minutes: 45
+
+    steps:
+      - name: Preserve committed line endings
+        run: git config --global core.autocrlf false
+
+      - name: Check out source
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+
+      - name: Configure Visual Studio 2022 x64
+        run: cmake -S frontend\windows -B "$env:RUNNER_TEMP\static-recomp-build" -G "Visual Studio 17 2022" -A x64
+
+      - name: Build Release
+        run: cmake --build "$env:RUNNER_TEMP\static-recomp-build" --config Release --parallel
+
+      - name: Run ROM-free tests
+        run: ctest --test-dir "$env:RUNNER_TEMP\static-recomp-build" -C Release --output-on-failure
