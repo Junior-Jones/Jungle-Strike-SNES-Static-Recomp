@@ -1,0 +1,33 @@
+{
+  "$schema": "https://recomp.fyi/schema/v1.json",
+  "game": "Jungle Strike",
+  "project": "Jungle Strike (SNES) Static Recompilation",
+  "system": "SNES",
+  "type": "recomp",
+  "original": {
+    "region": "USA/Canada"
+  },
+  "status": "released",
+  "targets": [
+    "Windows"
+  ],
+  "toolchain": "Unspecified",
+  "approach": "Custom static recompilation developed with ChatGPT, following the author's Starter SNES instructions.",
+  "maintainers": [
+    {
+      "name": "Junior-Jones",
+      "link": "https://github.com/Junior-Jones"
+    }
+  ],
+  "links": [
+    {
+      "label": "Repository",
+      "url": "https://github.com/Junior-Jones/Jungle-Strike-SNES-Static-Recomp"
+    },
+    {
+      "label": "Running and building instructions",
+      "url": "https://github.com/Junior-Jones/Jungle-Strike-SNES-Static-Recomp/blob/main/README.txt"
+    }
+  ],
+  "notes": "A public build is available. Widescreen support is planned for a future update."
+}
