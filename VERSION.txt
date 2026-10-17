@@ -7,6 +7,7 @@ Widescreen to switch between the normal display and Widescreen, including
 during play. Both controls operate the same setting.
 A one-time Notice explains that Wide Screen is experimental. Its Close
 button dismisses the window; settings.ini remembers it has been shown.
+Widescreen also stays visible after loading a paused gameplay snapshot.
 
 Jungle Strike (SNES) Static Recompilation
 Version: 1.1.0

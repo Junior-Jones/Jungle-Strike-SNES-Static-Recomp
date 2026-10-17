@@ -4,6 +4,11 @@ Widescreen verification tools
 These developer tools open no visible window and are not linked into Launcher.
 A supplied, verified ROM is required for gameplay checks; it is not packaged.
 
+The jungle-snapshot-display-test target accepts ROM, SNAPSHOT, OUTPUT_DIRECTORY.
+It checks immediate 512x288 output after a paused load and mode toggles, without
+running an emulated frame. Native crop/HUD/console pixels and serialized guest
+state must remain unchanged. Existing snapshot files remain compatible.
+
 Build the root jungle-widescreen-verify target in Release. Invoke it with:
   jungle-widescreen-verify.exe ROM GAMEPLAY_SNAPSHOT OUTPUT_DIRECTORY
 The output directory must exist. The snapshot must be a natural flight state.

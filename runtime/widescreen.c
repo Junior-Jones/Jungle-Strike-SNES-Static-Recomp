@@ -3,6 +3,7 @@
 #include "jungle/widescreen.h"
 #include "jungle/renderer_v10_30.h"
 #include <string.h>
+#include <stdlib.h>
 static int floor16(int value) {
   return value >= 0 ? value / 16 : (value - 15) / 16;
 }
@@ -707,4 +708,43 @@ js_stop_reason jungle_wide_scanline(JungleWideState *wide,
   }
   wide->work_scanlines++;
   return JS_STOP_NONE;
+}
+
+/* Snapshots retain the native image but intentionally omit host presentation
+   buffers. Rebuild those buffers from the frozen scene without running the
+   scheduler, changing guest memory, or changing the snapshot format. */
+void jungle_wide_restore_frame(JungleWideState *wide,
+                              const js_machine_v10_40 *machine,
+                              const uint8_t *rom, size_t size,
+                              const uint32_t native[256u * 224u]) {
+  js_machine_v10_40 *view;
+  js_rgb8_v10_28 line[256];
+  unsigned x, y;
+  if (!wide || !wide->enabled) return;
+  jungle_wide_console(wide, machine, native);
+  if (wide->console) return;
+  if (machine->ppu.bg_mode != 1u || !machine->ppu.layer[0].large_tiles ||
+      !machine->ppu.layer[1].large_tiles) return;
+  view = (js_machine_v10_40 *)malloc(sizeof(*view));
+  if (!view) return;
+  *view = *machine;
+  for (y = 0; y < 224u; y++) {
+    view->ppu = machine->ppu;
+    /* The cartridge enables BG3 for its message band and blanks only the
+       original footer. These are presentation-only copies of the PPU. */
+    if (y >= JUNGLE_WIDE_HUD_TOP && y < 220u)
+      view->ppu.main_screen_layers |= 4u;
+    if (y >= 220u) view->ppu.forced_blank = 1u;
+    for (x = 0; x < 256u; x++) {
+      uint32_t pixel = native[y * 256u + x];
+      line[x].r = (uint8_t)(pixel >> 16);
+      line[x].g = (uint8_t)(pixel >> 8);
+      line[x].b = (uint8_t)pixel;
+    }
+    if (jungle_wide_scanline(wide, view, rom, size, y, line) != JS_STOP_NONE) {
+      jungle_wide_invalidate(wide);
+      break;
+    }
+  }
+  free(view);
 }

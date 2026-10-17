@@ -34,6 +34,10 @@ typedef struct JungleWideState {
   uint64_t foreground_hash;
 } JungleWideState;
 void jungle_wide_invalidate(JungleWideState *wide);
+void jungle_wide_restore_frame(JungleWideState *wide,
+                              const js_machine_v10_40 *machine,
+                              const uint8_t *rom, size_t rom_size,
+                              const uint32_t native[256u * 224u]);
 void jungle_wide_console(JungleWideState *wide,
                          const js_machine_v10_40 *machine,
                          const uint32_t native[256u * 224u]);
