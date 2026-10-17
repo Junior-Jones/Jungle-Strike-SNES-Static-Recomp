@@ -53,6 +53,7 @@
 #define ID_FULLSCREEN 1020
 #define ID_SCREENSHOT 1021
 #define ID_AUTO_RUN 1022
+#define ID_WIDESCREEN 1023
 #define ID_SNAPSHOT_SAVE_CURRENT 1024
 #define ID_SNAPSHOT_LOAD_CURRENT 1025
 #define ID_SNAPSHOT_SLOT_BASE 5000
@@ -140,6 +141,7 @@ typedef struct InfoDialogState {
     const wchar_t *body;
     HWND text;
     HWND close_button;
+    int notice;
 } InfoDialogState;
 
 typedef struct GettingStartedDialogState {
@@ -162,6 +164,7 @@ static HWND g_audio_button;
 static HWND g_settings_button;
 static HWND g_fullscreen_checkbox;
 static HWND g_auto_run_checkbox;
+static HWND g_widescreen_checkbox;
 static HWND g_rom_path;
 static HWND g_status;
 static HWND g_info_window;
@@ -704,6 +707,7 @@ static void set_toolbar_visible(int visible) {
     ShowWindow(g_settings_button, command);
     ShowWindow(g_fullscreen_checkbox, command);
     ShowWindow(g_auto_run_checkbox, command);
+    ShowWindow(g_widescreen_checkbox, command);
     ShowWindow(g_status, command);
 }
 
@@ -801,6 +805,8 @@ static void update_controls(void) {
     EnableWindow(g_settings_button, !loading);
     EnableWindow(g_fullscreen_checkbox, !loading);
     EnableWindow(g_auto_run_checkbox, !loading);
+    EnableWindow(g_widescreen_checkbox, !loading);
+    EnableMenuItem(g_menu,ID_WIDESCREEN,MF_BYCOMMAND|(loading?MF_GRAYED:MF_ENABLED));
     set_accessible_control_text(g_browse_button,
                                 rom_path_known() ? L"&Run" : L"&Browse", 1);
     set_accessible_control_text(g_pause_play_button, L"&Play", 1);
@@ -824,6 +830,8 @@ static void update_controls(void) {
     CheckMenuItem(g_menu, ID_AUTO_RUN, MF_BYCOMMAND |
                   (SendMessageW(g_auto_run_checkbox, BM_GETCHECK, 0, 0) ==
                    BST_CHECKED ? MF_CHECKED : MF_UNCHECKED));
+    CheckMenuItem(g_menu,ID_WIDESCREEN,MF_BYCOMMAND|
+        (g_frontend_settings.widescreen?MF_CHECKED:MF_UNCHECKED));
     if (!g_presentation_hidden) DrawMenuBar(g_window);
 }
 
@@ -1130,6 +1138,8 @@ static int capture_core_screenshot_to(const wchar_t *base_directory,
     wchar_t directory[PATH_CAPACITY];
     wchar_t path[PATH_CAPACITY];
     SYSTEMTIME now;
+    uint32_t frame_height=g_game?jungle_recomp_frame_height(g_game):JUNGLE_RECOMP_FRAME_HEIGHT;
+    uint32_t frame_width=g_game?jungle_recomp_frame_width(g_game):256u;
     uint32_t frame = g_game ? jungle_recomp_current_frame(g_game) : 0u;
     if (saved_path && saved_capacity) saved_path[0] = L'\0';
     source = g_game ? jungle_recomp_frame_bgra(g_game) : NULL;
@@ -1137,11 +1147,11 @@ static int capture_core_screenshot_to(const wchar_t *base_directory,
     /* Match Mesen's screenshot ownership: copy the last completed emulator
        output buffer first, then encode the private copy.  Never sample the
        Windows desktop/window surface or a scanline still being composed. */
-    pixels = (uint32_t *)malloc((size_t)JUNGLE_RECOMP_FRAME_WIDTH *
-                                JUNGLE_RECOMP_FRAME_HEIGHT * sizeof(*pixels));
+    pixels = (uint32_t *)malloc((size_t)frame_width *
+                                frame_height * sizeof(*pixels));
     if (!pixels) return 0;
-    memcpy(pixels, source, (size_t)JUNGLE_RECOMP_FRAME_WIDTH *
-                           JUNGLE_RECOMP_FRAME_HEIGHT * sizeof(*pixels));
+    memcpy(pixels, source, (size_t)frame_width *
+                           frame_height * sizeof(*pixels));
     if (base_directory && base_directory[0])
         join_wide_path(directory, PATH_CAPACITY, base_directory, L"Screenshots");
     else
@@ -1159,9 +1169,9 @@ static int capture_core_screenshot_to(const wchar_t *base_directory,
                (unsigned)now.wSecond, (unsigned)now.wMilliseconds);
     path[PATH_CAPACITY - 1u] = L'\0';
     if (!save_bgra_bmp(path, (const uint8_t *)pixels,
-                       (int)JUNGLE_RECOMP_FRAME_WIDTH,
-                       (int)JUNGLE_RECOMP_FRAME_HEIGHT,
-                       (int)JUNGLE_RECOMP_FRAME_WIDTH * 4)) {
+                       (int)frame_width,
+                       (int)frame_height,
+                       (int)frame_width * 4)) {
         free(pixels);
         return 0;
     }
@@ -1327,11 +1337,11 @@ static const wchar_t g_welcome_text[] =
     L"Welcome to Jungle Strike (SNES) Static Recompilation\r\n\r\n"
     L"Frontend shortcuts\r\n"
     L"Escape - Switch between the game and Launcher\r\n"
+    L"1 - Save the current snapshot slot\r\n"
+    L"2 - Load the current snapshot slot\r\n"
     L"F1 - Welcome and shortcut guide\r\n"
     L"F2 - Open the Save Snapshot window\r\n"
     L"F3 - Open the Load Snapshot window\r\n"
-    L"1 - Save the current snapshot slot\r\n"
-    L"2 - Load the current snapshot slot\r\n"
     L"F4 - Settings\r\n"
     L"F5 - Controls\r\n"
     L"F6 - Audio settings\r\n"
@@ -1354,6 +1364,13 @@ static void show_frontend_settings(void) {
             SendMessageW(g_auto_run_checkbox, BM_SETCHECK,
                          g_frontend_settings.auto_run_on_load ?
                          BST_CHECKED : BST_UNCHECKED, 0);
+            SendMessageW(g_widescreen_checkbox, BM_SETCHECK,
+                         g_frontend_settings.widescreen ? BST_CHECKED : BST_UNCHECKED, 0);
+            if (g_game) {
+                char error[256];
+                (void)jungle_recomp_set_widescreen(g_game,
+                    g_frontend_settings.widescreen, error, sizeof(error));
+            }
             update_controls();
             InvalidateRect(g_window, NULL, TRUE);
     }
@@ -1792,6 +1809,8 @@ static LRESULT CALLBACK info_dialog_proc(HWND window, UINT message,
                                          WPARAM wparam, LPARAM lparam) {
     InfoDialogState *state = info_dialog_state(window);
     switch (message) {
+        case DM_GETDEFID:
+            return MAKELONG(ID_INFO_CLOSE, DC_HASDEFID);
         case WM_NCCREATE:
             SetWindowLongPtrW(window, GWLP_USERDATA,
                 (LONG_PTR)((CREATESTRUCTW *)lparam)->lpCreateParams);
@@ -1801,7 +1820,8 @@ static LRESULT CALLBACK info_dialog_proc(HWND window, UINT message,
             state->text = CreateWindowExW(
                 WS_EX_CLIENTEDGE, L"EDIT", state->body,
                 WS_CHILD | WS_VISIBLE | WS_TABSTOP | ES_LEFT |
-                ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL | WS_VSCROLL,
+                ES_MULTILINE | ES_READONLY | ES_AUTOVSCROLL |
+                (state->notice ? 0 : WS_VSCROLL),
                 0, 0, 10, 10, window,
                 (HMENU)(INT_PTR)ID_INFO_TEXT, g_instance, NULL);
             state->close_button = CreateWindowExW(
@@ -1864,10 +1884,12 @@ static void show_information_window(const wchar_t *title,
     }
     ZeroMemory(&g_info_state, sizeof(g_info_state));
     g_info_state.body = body;
+    g_info_state.notice = wcscmp(title, L"Notice") == 0;
     dialog = CreateWindowExW(
         WS_EX_DLGMODALFRAME | WS_EX_CONTROLPARENT,
         INFO_CLASS_NAME, title,
-        WS_CAPTION | WS_SYSMENU | WS_POPUP | WS_THICKFRAME,
+        WS_CAPTION | WS_SYSMENU | WS_POPUP |
+            (g_info_state.notice ? 0 : WS_THICKFRAME),
         CW_USEDEFAULT, CW_USEDEFAULT, width, height,
         g_window, NULL, g_instance, &g_info_state);
     if (!dialog) {
@@ -1878,12 +1900,30 @@ static void show_information_window(const wchar_t *title,
     g_info_window = dialog;
     SetWindowTextW(dialog, title);
     center_window_on_parent(dialog, g_window);
+    /* A hidden owner is used by the headless native frontend checks. */
+    if (!IsWindowVisible(g_window)) return;
     ShowWindow(dialog, SW_SHOWNORMAL);
     SetWindowPos(dialog, HWND_TOP, 0, 0, 0, 0,
                  SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
     SetActiveWindow(dialog);
     SetForegroundWindow(dialog);
     if (IsWindow(g_info_state.text)) SetFocus(g_info_state.text);
+}
+
+static void show_widescreen_notice_once(void) {
+    if (g_frontend_settings.widescreen_notice_shown || IsWindow(g_info_window))
+        return;
+    g_info_resume_after = g_game && !g_paused;
+    if (g_info_resume_after) pause_game(L"Paused while Notice is open.");
+    show_information_window(L"Notice",
+        L"Wide Screen is experimental, you may or may not encounter issues.\r\n\r\n"
+        L"If any occur then feedback is welcomed.", 520, 230);
+    if (IsWindow(g_info_window)) {
+        g_frontend_settings.widescreen_notice_shown = 1;
+        if (!jungle_frontend_settings_win32_save(
+                &g_frontend_settings, g_settings_ini_path))
+            set_status(L"Notice shown, but its one-time setting could not be saved.");
+    }
 }
 
 static HWND create_getting_started_text(HWND parent, const wchar_t *text,
@@ -2357,6 +2397,7 @@ static void layout_controls(HWND window) {
     MoveWindow(g_fullscreen_checkbox, 488, 10, 112, 26, TRUE);
     MoveWindow(g_auto_run_checkbox, 610, 10,
                width > 820 ? 88 : 82, 26, TRUE);
+    MoveWindow(g_widescreen_checkbox,704,10,108,26,TRUE);
     MoveWindow(g_status, 12, 48, width - 24, 24, TRUE);
 }
 
@@ -2375,11 +2416,15 @@ static void paint_window(HWND window) {
 
     if (g_game && pixels && render_area.bottom > render_area.top) {
         BITMAPINFO bitmap;
+        int frame_height = (int)jungle_recomp_frame_height(g_game);
         int frame_width = (int)jungle_recomp_frame_width(g_game);
         int available_width = render_area.right - render_area.left;
         int available_height = render_area.bottom - render_area.top;
         int draw_width = available_width;
-        int draw_height = draw_width * 3 / 4;
+        int widescreen_frame = frame_width != (int)JUNGLE_RECOMP_FRAME_WIDTH;
+        int draw_height = widescreen_frame ?
+            draw_width * frame_height / frame_width :
+            draw_width * 3 / 4;
         int x;
         int y;
         if (g_frontend_settings.integer_scale >= 1 &&
@@ -2387,34 +2432,36 @@ static void paint_window(HWND window) {
             int scale = g_frontend_settings.integer_scale;
             while (scale > 1 &&
                    (frame_width * scale > available_width ||
-                    (int)JUNGLE_RECOMP_FRAME_HEIGHT * scale >
+                    frame_height * scale >
                         available_height))
                 --scale;
             if (frame_width * scale <= available_width &&
-                (int)JUNGLE_RECOMP_FRAME_HEIGHT * scale <=
+                frame_height * scale <=
                     available_height) {
                 draw_width = frame_width * scale;
-                draw_height = (int)JUNGLE_RECOMP_FRAME_HEIGHT * scale;
+                draw_height = frame_height * scale;
             } else {
                 draw_width = available_width;
                 draw_height = draw_width *
-                              (int)JUNGLE_RECOMP_FRAME_HEIGHT / frame_width;
+                              frame_height / frame_width;
                 if (draw_height > available_height) {
                     draw_height = available_height;
                     draw_width = draw_height * frame_width /
-                                 (int)JUNGLE_RECOMP_FRAME_HEIGHT;
+                                 frame_height;
                 }
             }
         } else if (draw_height > available_height) {
             draw_height = available_height;
-            draw_width = draw_height * 4 / 3;
+            draw_width = widescreen_frame ?
+                draw_height * frame_width / frame_height :
+                draw_height * 4 / 3;
         }
         x = render_area.left + (available_width - draw_width) / 2;
         y = render_area.top + (available_height - draw_height) / 2;
         ZeroMemory(&bitmap, sizeof(bitmap));
         bitmap.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
         bitmap.bmiHeader.biWidth = (LONG)frame_width;
-        bitmap.bmiHeader.biHeight = -(LONG)JUNGLE_RECOMP_FRAME_HEIGHT;
+        bitmap.bmiHeader.biHeight = -(LONG)frame_height;
         bitmap.bmiHeader.biPlanes = 1u;
         bitmap.bmiHeader.biBitCount = 32u;
         bitmap.bmiHeader.biCompression = BI_RGB;
@@ -2422,7 +2469,7 @@ static void paint_window(HWND window) {
         if (StretchDIBits(dc, x, y, draw_width, draw_height,
                           0, 0,
                           frame_width,
-                          JUNGLE_RECOMP_FRAME_HEIGHT,
+                          frame_height,
                           pixels, &bitmap, DIB_RGB_COLORS, SRCCOPY) !=
             GDI_ERROR) {
             uint32_t emu_frame = jungle_recomp_current_frame(g_game);
@@ -3019,6 +3066,7 @@ static HMENU create_menu_bar(void) {
     AppendMenuW(settings, MF_SEPARATOR, 0, NULL);
     AppendMenuW(settings, MF_STRING, ID_FULLSCREEN,
                 L"Use &Full Screen When Playing");
+    AppendMenuW(settings,MF_STRING,ID_WIDESCREEN,L"&Widescreen");
     AppendMenuW(settings, MF_STRING, ID_AUTO_RUN,
                 L"&Auto-Run at Startup");
     AppendMenuW(settings, MF_SEPARATOR, 0, NULL);
@@ -3136,6 +3184,8 @@ static void initialize_paths_and_settings(void) {
         g_adjacent_rom_found = 1;
         SetWindowTextW(g_rom_path, default_rom);
     }
+    SendMessageW(g_widescreen_checkbox,BM_SETCHECK,
+                 g_frontend_settings.widescreen?BST_CHECKED:BST_UNCHECKED,0);
     SendMessageW(g_fullscreen_checkbox, BM_SETCHECK,
                  g_frontend_settings.fullscreen_on_play ?
                  BST_CHECKED : BST_UNCHECKED, 0);
@@ -3180,7 +3230,8 @@ static void save_current_settings_on_exit(void) {
         g_frontend_settings.fullscreen_on_play =
             SendMessageW(g_fullscreen_checkbox, BM_GETCHECK, 0, 0) ==
             BST_CHECKED;
-    g_frontend_settings.widescreen = 0;
+    if(IsWindow(g_widescreen_checkbox))
+        g_frontend_settings.widescreen=SendMessageW(g_widescreen_checkbox,BM_GETCHECK,0,0)==BST_CHECKED;
     (void)jungle_frontend_settings_win32_save(
         &g_frontend_settings, g_settings_ini_path);
     jungle_audio_settings_save(&g_audio_settings, g_settings_ini_path);
@@ -3238,6 +3289,10 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                 WS_CHILD | WS_VISIBLE | WS_TABSTOP | BS_AUTOCHECKBOX,
                 610, 10, 88, 26, window,
                 (HMENU)(INT_PTR)ID_AUTO_RUN, g_instance, NULL);
+            g_widescreen_checkbox=CreateWindowExW(
+                0,L"BUTTON",L"&Widescreen",
+                WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
+                704,10,108,26,window,(HMENU)(INT_PTR)ID_WIDESCREEN,g_instance,NULL);
             /* The ROM path remains internal. Status is exposed as native
                static text, not as an editable toolbar field. */
             g_rom_path = CreateWindowExW(
@@ -3258,6 +3313,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             set_control_font(g_settings_button);
             set_control_font(g_fullscreen_checkbox);
             set_control_font(g_auto_run_checkbox);
+            set_control_font(g_widescreen_checkbox);
             set_control_font(g_rom_path);
             set_control_font(g_status);
             SendMessageW(g_fullscreen_checkbox, BM_SETCHECK, BST_UNCHECKED, 0);
@@ -3271,7 +3327,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
 
         case WM_GETMINMAXINFO: {
             MINMAXINFO *info = (MINMAXINFO *)lparam;
-            info->ptMinTrackSize.x = 820;
+            info->ptMinTrackSize.x = 850;
             info->ptMinTrackSize.y = 580;
             return 0;
         }
@@ -3315,6 +3371,25 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                         &g_frontend_settings, g_settings_ini_path);
                     update_controls();
                     return 0;
+                case ID_WIDESCREEN: {
+                    char error[256];int enabled;
+                    if(InterlockedCompareExchange(&g_loading,0,0)!=0)return 0;
+                    if((HWND)lparam!=g_widescreen_checkbox){
+                        LRESULT checked=SendMessageW(g_widescreen_checkbox,BM_GETCHECK,0,0);
+                        SendMessageW(g_widescreen_checkbox,BM_SETCHECK,checked==BST_CHECKED?BST_UNCHECKED:BST_CHECKED,0);
+                    }
+                    enabled=SendMessageW(g_widescreen_checkbox,BM_GETCHECK,0,0)==BST_CHECKED;
+                    if(g_game&&!jungle_recomp_set_widescreen(g_game,enabled,error,sizeof(error))){
+                        SendMessageW(g_widescreen_checkbox,BM_SETCHECK,g_frontend_settings.widescreen?BST_CHECKED:BST_UNCHECKED,0);
+                        {wchar_t wide_message[256];utf8_to_wide(error,wide_message,ARRAY_COUNT(wide_message));MessageBoxW(window,wide_message,APP_TITLE,MB_OK|MB_ICONERROR);}
+                    }else {
+                        g_frontend_settings.widescreen=enabled;
+                        if (!jungle_frontend_settings_win32_save(&g_frontend_settings,g_settings_ini_path))
+                            set_status(L"Widescreen changed, but the setting could not be saved.");
+                        show_widescreen_notice_once();
+                    }
+                    update_controls();InvalidateRect(window,NULL,FALSE);return 0;
+                }
                 case ID_AUTO_RUN:
                     if (lparam == 0) {
                         LRESULT checked = SendMessageW(g_auto_run_checkbox,
@@ -3342,7 +3417,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                         static const wchar_t about[] =
                             L"F1 - Open the Welcome window\r\n\r\n"
                             L"Jungle Strike (SNES) Static Recompilation\r\n"
-                            L"Version 1.0.0\r\n\r\n"
+                            L"Version 1.1.0\r\n\r\n"
                             L"Title: Jungle Strike\r\n"
                             L"Region: USA/Canada NTSC\r\n"
                             L"File type: .sfc";
@@ -3453,7 +3528,8 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             (void)flush_battery_sram_win32(1, NULL, 0u);
             jungle_recomp_destroy(g_game);
             g_game = result->game;
-            g_frontend_settings.widescreen = 0;
+            {char wide_error[256];
+                (void)jungle_recomp_set_widescreen(g_game,g_frontend_settings.widescreen,wide_error,sizeof(wide_error));}
             g_loaded_snapshot_slot = -1;
             g_sram_last_flush_frame = 0u;
             g_audio_last_fifo_dropped = 0u;

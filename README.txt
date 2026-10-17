@@ -1,5 +1,5 @@
 Jungle Strike (SNES) Static Recompilation - Source
-Version 1.0.0
+Version 1.1.0
 
 This package contains the Jungle Strike-specific static core and its native
 Windows Launcher frontend. The original game ROM is not included.
@@ -12,12 +12,50 @@ then run Launcher.exe. Browse ROM can select the verified file elsewhere.
 The application checks the complete ROM identity before enabling play.
 
 Escape switches between live gameplay and the launcher without resetting the
-machine. F1 opens the Welcome and shortcut guide, F2/F3 open the Save/Load
-Snapshot windows, 1/2 save/load the current snapshot, F4 opens Settings, F5 opens
+machine. 1/2 save/load the current snapshot. F1 opens the Welcome and shortcut
+guide, F2/F3 open the Save/Load Snapshot windows, F4 opens Settings, F5 opens
 Controller Bindings, F6 opens Audio Settings, F7 runs the selected ROM and F8
 captures a screenshot. Accepted settings and controller bindings are written
 to settings.ini beside Launcher.exe whenever Apply is used and again on exit.
 The file is created automatically; it is not shipped in the release archive.
+
+Widescreen
+----------
+
+The Widescreen toolbar checkbox and Settings > Widescreen menu item switch
+live gameplay to 512 x 288 (16:9): 128 extra world pixels on the left/right and 32
+above/below. The setting is saved beside Launcher.exe. No other frontend
+controls are added. Screenshot export and scaling use both actual dimensions.
+The first click on either Widescreen control shows a small experimental-feature
+Notice. Its one-time flag is saved in settings.ini beside Launcher.exe.
+
+Terrain and scenery come from live camera state, cartridge map data and
+scenery records. Sprite coordinates are tracked across their horizontal and
+vertical wraps; unused ($E0,$E0) OAM entries are excluded from the expanded
+world. Original movement, weapons, collision, spawning and range remain intact.
+At map edges, the expanded viewport shifts toward valid terrain while keeping
+the complete native world view. This avoids exposing unused map-border tiles.
+
+The bottom gameplay message layer is anchored to the new bottom edge. Its
+visible pixels move from original rows 208..219 to expanded rows 272..283;
+world scenery fills the vacated area, both sides of the messages and the
+bottom four rows. In wide mode, the Map/Mission/Status console fills the
+512 x 288 canvas with its original text, digits, map and markers at native
+pixel size. Statistics sit on the far right and navigation along the bottom.
+Normal mode retains the original console and 4:3 presentation.
+
+Original snapshots remain compatible. Widescreen remains a host display
+choice when loading a snapshot or resetting. Firing tests also exposed an
+omitted static return domain: the cartridge-proven entity-dispatcher returns
+through $80:D40F now accept their 30 frozen, compiled caller continuations.
+All other return contexts still fail closed; no runtime decoding or learning
+has been introduced.
+
+The information console's Mission and Status screens and their polling states are
+also compiled. Their omitted ROM routines previously stopped both display
+modes. An additive source-proven closure supplies 801 native instruction
+contexts, including ROM-proven damage dispatch and entity returns discovered
+while testing corners. Its 168 frozen return edges admit no unknown target.
 
 What fully static recompilation means
 -------------------------------------
@@ -25,7 +63,7 @@ What fully static recompilation means
 Jungle Strike is executed through ahead-of-time native code generated from
 the supported cartridge. Executable W65C816/S-CPU instructions were analysed
 before the application was built and lowered into fixed C source. Production
-authority contains 27,835 exact processor contexts covering 64,330 unique ROM
+authority contains 28,636 exact processor contexts covering 66,177 unique ROM
 code bytes, plus 46,386 bytes of separately proved immutable cartridge data.
 
 At runtime there is no general-purpose SNES CPU interpreter, opcode decoder,
@@ -43,13 +81,18 @@ game and audio-driver instructions are compiled ahead of time.
 Compact static authority
 ------------------------
 
-The 27,835 exact S-CPU contexts are stored as 219 shared semantic templates,
+The original 27,835 exact S-CPU contexts are stored as 219 shared semantic templates,
 frozen per-context parameters and 77 address shards. This is representation
 compaction only: each PBR:PC:E:M:X entry, instruction effect, resume point and
 proved successor is unchanged. The generated semantic manifest reconstructs
 to the same SHA-256 as the predecessor authority. Runtime code performs an
 exact context lookup; it does not decode ROM opcodes, learn targets or fall
 back to an emulator.
+
+The console repair adds 679 exact contexts covering 1,584 additional ROM
+code bytes in runtime/status_closure.c. Its offline source proof and regeneration
+script are in generator. Regeneration requires the historic analysis reference;
+normal builds use the included native C and need neither that reference nor ROM.
 
 Generated S-CPU source fell from 22,264,321 to 4,285,677 bytes (80.75%). The
 clean MSVC static core library fell from 9,038,916 to 2,388,546 bytes (73.57%)
@@ -165,10 +208,12 @@ gamepad contracts, audio resampling, audio settings and byte-identical snapshot
 continuation. The frontend-core test can also load an externally supplied
 same-build snapshot and advance it through the streamed-audio path.
 
-Version 1.0.0 was exercised through every campaign password. Missions 1-9
-were each accepted and reached live gameplay. The completed runs reported no
-S-CPU machine stop, renderer stop, failure evidence or PPU renderer-domain
-violation.
+Historic password-route smoke checks do not establish complete gameplay or
+vehicle coverage. Current widescreen evidence includes mission 1 corner and
+weapon tests and mission 1/2 console-selection tests. Mission 2 corner testing
+and the remaining gameplay transitions are still in progress. Developer test
+programs are included in the source package; captured screenshots, replay
+states, personal settings and test logs are excluded from both release ZIPs.
 
 Frontend and release behavior
 -----------------------------

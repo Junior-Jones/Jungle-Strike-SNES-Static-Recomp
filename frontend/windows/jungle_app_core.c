@@ -366,8 +366,14 @@ const uint32_t *jungle_recomp_frame_bgra(const JungleStrikeRecomp *instance) {
 }
 
 uint32_t jungle_recomp_frame_width(const JungleStrikeRecomp *instance) {
-    (void)instance;
-    return JUNGLE_RECOMP_FRAME_WIDTH;
+    JungleCoreFrame frame;
+    return instance&&jungle_core_get_frame(instance->core,&frame)?frame.width:JUNGLE_RECOMP_FRAME_WIDTH;
+}
+
+uint32_t jungle_recomp_frame_height(const JungleStrikeRecomp *instance) {
+    JungleCoreFrame frame;
+    return instance && jungle_core_get_frame(instance->core, &frame) ?
+        frame.height : JUNGLE_RECOMP_FRAME_HEIGHT;
 }
 
 uint32_t jungle_recomp_current_frame(const JungleStrikeRecomp *instance) {
@@ -443,17 +449,16 @@ void jungle_recomp_audio_clear_overflow(JungleStrikeRecomp *instance) {
 }
 
 int jungle_recomp_widescreen_enabled(const JungleStrikeRecomp *instance) {
-    (void)instance;
-    return 0;
+    return instance?jungle_core_widescreen_enabled(instance->core):0;
 }
 
 int jungle_recomp_set_widescreen(JungleStrikeRecomp *instance, int enabled,
                                  char *error, size_t error_capacity) {
-    (void)instance;
-    if (!enabled) return 1;
-    set_error(error, error_capacity,
-              "This Jungle Strike core does not expose widescreen rendering.");
-    return 0;
+    if(!instance||!jungle_core_set_widescreen(instance->core,enabled)){
+        set_error(error,error_capacity,"Unable to allocate widescreen presentation.");return 0;
+    }
+    {JungleCoreFrame frame;if(jungle_core_get_frame(instance->core,&frame))instance->frame_pixels=frame.bgra_pixels;}
+    return 1;
 }
 
 static int unsupported(char *error, size_t error_capacity) {

@@ -48,6 +48,7 @@ int main(void)
 
     jungle_frontend_settings_win32_defaults(&settings);
     CHECK(settings.welcome_shown == 0);
+    CHECK(settings.widescreen_notice_shown == 0);
     CHECK(settings.show_fps_counter == 0);
     CHECK(settings.ntsc_frame_lock == 1);
     for (index = 0; index < JUNGLE_WIN_BINDING_COUNT; ++index) {
@@ -71,6 +72,8 @@ int main(void)
     settings.welcome_shown = 1;
     settings.show_fps_counter = 1;
     settings.ntsc_frame_lock = 0;
+    settings.widescreen = 1;
+    settings.widescreen_notice_shown = 1;
     settings.snapshot_slot = 4;
     CHECK(jungle_frontend_settings_win32_save(&settings, path));
     memset(&loaded, 0, sizeof(loaded));
@@ -84,6 +87,8 @@ int main(void)
     CHECK(loaded.welcome_shown == 1);
     CHECK(loaded.show_fps_counter == 1);
     CHECK(loaded.ntsc_frame_lock == 0);
+    CHECK(loaded.widescreen == 1);
+    CHECK(loaded.widescreen_notice_shown == 1);
     CHECK(loaded.snapshot_slot == 4);
     for (index = 0; index < JUNGLE_WIN_BINDING_COUNT; ++index) {
         CHECK(loaded.bindings[index] == accessible_keys[index]);
