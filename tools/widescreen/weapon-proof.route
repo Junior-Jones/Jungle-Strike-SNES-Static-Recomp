@@ -1,0 +1,7 @@
+180 0 settle
+60 40 gun-x
+60 0 gun-coast
+12 80 missile-a
+90 0 missile-a-coast
+12 4000 missile-y
+90 0 missile-y-coast

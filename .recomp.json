@@ -29,5 +29,5 @@
       "url": "https://github.com/Junior-Jones/Jungle-Strike-SNES-Static-Recomp/blob/main/README.txt"
     }
   ],
-  "notes": "A public build is available. Widescreen support is planned for a future update."
+  "notes": "Version 1.1.0 supports normal 4:3 presentation and optional Widescreen rendering, expanded gameplay on all four sides and a reflowed information console. One shared setting is available from the existing toolbar checkbox and Settings menu."
 }

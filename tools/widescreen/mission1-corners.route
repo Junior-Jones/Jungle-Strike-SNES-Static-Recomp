@@ -1,0 +1,72 @@
+reset
+go 64 64 9000 northwest-arrival
+180 0 northwest-stopped
+90 40 northwest-gun
+90 80 northwest-hydra
+90 4000 northwest-hellfire
+3 1000 northwest-pause-open
+60 0 northwest-paused
+3 1000 northwest-unpause
+180 0 northwest-resumed
+12 2000 northwest-console-open
+360 0 northwest-map
+30 40 northwest-mission-open
+360 0 northwest-mission
+30 80 northwest-status-open
+360 0 northwest-status
+12 2000 northwest-console-close
+180 0 northwest-final
+reset
+go 3903 64 9000 northeast-arrival
+180 0 northeast-stopped
+90 40 northeast-gun
+90 80 northeast-hydra
+90 4000 northeast-hellfire
+3 1000 northeast-pause-open
+60 0 northeast-paused
+3 1000 northeast-unpause
+180 0 northeast-resumed
+12 2000 northeast-console-open
+360 0 northeast-map
+30 40 northeast-mission-open
+360 0 northeast-mission
+30 80 northeast-status-open
+360 0 northeast-status
+12 2000 northeast-console-close
+180 0 northeast-final
+reset
+go 3903 3935 9000 southeast-arrival
+180 0 southeast-stopped
+90 40 southeast-gun
+90 80 southeast-hydra
+90 4000 southeast-hellfire
+3 1000 southeast-pause-open
+60 0 southeast-paused
+3 1000 southeast-unpause
+180 0 southeast-resumed
+12 2000 southeast-console-open
+360 0 southeast-map
+30 40 southeast-mission-open
+360 0 southeast-mission
+30 80 southeast-status-open
+360 0 southeast-status
+12 2000 southeast-console-close
+180 0 southeast-final
+reset
+go 64 3935 9000 southwest-arrival
+180 0 southwest-stopped
+90 40 southwest-gun
+90 80 southwest-hydra
+90 4000 southwest-hellfire
+3 1000 southwest-pause-open
+60 0 southwest-paused
+3 1000 southwest-unpause
+180 0 southwest-resumed
+12 2000 southwest-console-open
+360 0 southwest-map
+30 40 southwest-mission-open
+360 0 southwest-mission
+30 80 southwest-status-open
+360 0 southwest-status
+12 2000 southwest-console-close
+180 0 southwest-final

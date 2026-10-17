@@ -1,4 +1,4 @@
-Jungle Strike (SNES) Static Recompilation 1.0.0
+Jungle Strike (SNES) Static Recompilation 1.1.0
 Third-party notices
 
 SDL 3.4.10

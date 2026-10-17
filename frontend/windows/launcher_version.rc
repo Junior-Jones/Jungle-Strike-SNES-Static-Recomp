@@ -1,8 +1,8 @@
 #include <windows.h>
 
 1 VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,1,0,0
+ PRODUCTVERSION 1,1,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS VS_FF_DEBUG
@@ -19,11 +19,11 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "Junior Jones\0"
             VALUE "FileDescription", "Jungle Strike (SNES) Static Recompilation\0"
-            VALUE "FileVersion", "1.0.0\0"
+            VALUE "FileVersion", "1.1.0\0"
             VALUE "InternalName", "Launcher\0"
             VALUE "OriginalFilename", "Launcher.exe\0"
             VALUE "ProductName", "Jungle Strike (SNES) Static Recompilation\0"
-            VALUE "ProductVersion", "1.0.0\0"
+            VALUE "ProductVersion", "1.1.0\0"
         END
     END
     BLOCK "VarFileInfo"

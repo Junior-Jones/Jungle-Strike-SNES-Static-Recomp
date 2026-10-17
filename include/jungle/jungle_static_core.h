@@ -6,15 +6,15 @@
 extern "C" {
 #endif
 
-#define JUNGLE_STATIC_CORE_VERSION_STRING "1.0.0"
+#define JUNGLE_STATIC_CORE_VERSION_STRING "1.1.0"
 #define JUNGLE_STATIC_CORE_ROM_SIZE 2097152u
 #define JUNGLE_STATIC_CORE_FRAME_WIDTH 256u
 #define JUNGLE_STATIC_CORE_FRAME_HEIGHT 224u
 #define JUNGLE_STATIC_CORE_AUDIO_CHANNELS 2u
 #define JUNGLE_STATIC_CORE_AUDIO_SAMPLE_RATE 32040u
 #define JUNGLE_STATIC_CORE_SEALED_CONTEXTS 27835u
-#define JUNGLE_STATIC_CORE_PRODUCTION_CONTEXTS 27835u
-#define JUNGLE_STATIC_CORE_PRODUCTION_ROM_BYTES 64330u
+#define JUNGLE_STATIC_CORE_PRODUCTION_CONTEXTS 28636u
+#define JUNGLE_STATIC_CORE_PRODUCTION_ROM_BYTES 66177u
 #define JUNGLE_STATIC_CORE_IMMUTABLE_DATA_BYTES 46386u
 #define JUNGLE_STATIC_CORE_ROM_SHA256 "8d812ea4fa897274116f7f43bc689e110f1cfbd3f7eb3a1737c2a85d36369159"
 
@@ -164,6 +164,8 @@ int jungle_core_run_frame_streamed(
 int jungle_core_run_frame_headless(JungleStaticCore *core,
                                    uint16_t player1_mask,
                                    uint16_t player2_mask);
+int jungle_core_widescreen_enabled(const JungleStaticCore *core);
+int jungle_core_set_widescreen(JungleStaticCore *core,int enabled);
 int jungle_core_get_frame(const JungleStaticCore *core, JungleCoreFrame *out_frame);
 int jungle_core_take_audio(JungleStaticCore *core, JungleCoreAudio *out_audio);
 int jungle_core_status(const JungleStaticCore *core, JungleCoreStatus *out_status);

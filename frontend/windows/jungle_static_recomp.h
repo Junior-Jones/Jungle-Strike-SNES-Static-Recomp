@@ -56,7 +56,9 @@ int jungle_recomp_advance_headless(JungleStrikeRecomp *instance,
                                    uint32_t frame_count,
                                    JungleStrikeRecompFrameResult *result);
 const uint32_t *jungle_recomp_frame_bgra(const JungleStrikeRecomp *instance);
+/* Actual width: 256 for fixed screens, 512 for wide gameplay/information console. */
 uint32_t jungle_recomp_frame_width(const JungleStrikeRecomp *instance);
+uint32_t jungle_recomp_frame_height(const JungleStrikeRecomp *instance);
 uint32_t jungle_recomp_current_frame(const JungleStrikeRecomp *instance);
 uint64_t jungle_recomp_instruction_count(const JungleStrikeRecomp *instance);
 int jungle_recomp_failed(const JungleStrikeRecomp *instance);

@@ -136,7 +136,9 @@ void jungle_frontend_settings_win32_load(JungleStrikeFrontendSettingsWin32 *s,
         L"General",L"ShowFpsCounter",0,path)!=0;
     s->ntsc_frame_lock=GetPrivateProfileIntW(
         L"General",L"NtscFrameLock",1,path)!=0;
-    s->widescreen=0;
+    s->widescreen=GetPrivateProfileIntW(L"Display",L"Widescreen",0,path)!=0;
+    s->widescreen_notice_shown=GetPrivateProfileIntW(
+        L"Display",L"WidescreenNoticeShown",0,path)!=0;
     s->snapshot_slot=GetPrivateProfileIntW(
         L"General",L"SnapshotSlot",1,path);
     s->welcome_shown=GetPrivateProfileIntW(
@@ -182,7 +184,8 @@ int jungle_frontend_settings_win32_save(const JungleStrikeFrontendSettingsWin32 
     ok&=write_int(L"General",L"FullScreenOnPlay",s->fullscreen_on_play,path);
     ok&=write_int(L"General",L"ShowFpsCounter",s->show_fps_counter,path);
     ok&=write_int(L"General",L"NtscFrameLock",s->ntsc_frame_lock,path);
-    ok&=WritePrivateProfileStringW(L"Display",L"Widescreen",NULL,path)!=0;
+    ok&=write_int(L"Display",L"Widescreen",s->widescreen,path);
+    ok&=write_int(L"Display",L"WidescreenNoticeShown",s->widescreen_notice_shown,path);
     ok&=write_int(L"General",L"SnapshotSlot",s->snapshot_slot,path);
     ok&=write_int(L"General",L"WelcomeShown",s->welcome_shown,path);
     ok&=WritePrivateProfileStringW(

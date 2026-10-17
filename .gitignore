@@ -20,3 +20,12 @@ __pycache__/
 settings.ini
 /Saves/
 /Logs/
+*.snapshot
+*.wram
+*.ppm
+*.pdb
+*.obj
+*.exe
+*.dll
+*.zip
+/Verification/

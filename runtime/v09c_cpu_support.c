@@ -1,5 +1,6 @@
 #include <string.h>
 #include "jungle/cpu_v08c_internal.h"
+#include "jungle/status_closure.h"
 #include "jungle/status_v09c.h"
 #include "jungle/machine_v08c.h"
 typedef struct js_sha256_ctx { uint32_t h[8]; uint64_t bits; uint8_t buf[64]; size_t used; } js_sha256_ctx;
@@ -378,6 +379,34 @@ void js_v05c_diagnostic_capture_stop(js_machine_v05c *m,
 js_stop_reason js_v05c_validate_current_key(js_machine_v05c *m, const js_static_context_key *allowed, size_t count, js_stop_reason failure) {
     js_static_context_key current = js_v05c_key_from_cpu(&m->cpu);
     for(size_t i=0;i<count;i++) if(js_v05c_key_equal(current,allowed[i])) return JS_STOP_NONE;
+    if(m->rom_identity_ok) {
+        if(failure==JS_STOP_UNPROVED_DYNAMIC_TARGET &&
+           jungle_damage_dispatch_allowed(m->diagnostic_current_key,current))return JS_STOP_NONE;
+        if(failure==JS_STOP_UNPROVED_RETURN_CONTEXT &&
+           jungle_status_return_allowed(m->diagnostic_current_key,current))return JS_STOP_NONE;
+        /* ROM A0:A011/A0:A0AC load $8452; A0:84C7 advances to $84CF.
+           ROM A0:9FFD/A0:A0EB load $8387; A0:83F3 advances to $83FB. The complete entry/poll regions are statically compiled. */
+        if(failure==JS_STOP_UNPROVED_DYNAMIC_TARGET &&
+           js_v05c_pack_key(m->diagnostic_current_key)==JS_V05C_KEY_CONST(0xA0u,0x816Bu,0u,0u,0u) &&
+           (js_v05c_pack_key(current)==JS_V05C_KEY_CONST(0xA0u,0x8452u,0u,0u,0u) ||
+            js_v05c_pack_key(current)==JS_V05C_KEY_CONST(0xA0u,0x84CFu,0u,0u,0u) || js_v05c_pack_key(current)==JS_V05C_KEY_CONST(0xA0u,0x8387u,0u,0u,0u) || js_v05c_pack_key(current)==JS_V05C_KEY_CONST(0xA0u,0x83FBu,0u,0u,0u)))return JS_STOP_NONE;
+    }
+    /* Frozen tail-call return amendment: each continuation below follows a
+       compiled $80 JSR $CA82 (entity dispatcher). That dispatcher can tail-call
+       $D3E1 and return through $D40F. The sealed domain omitted these callers.
+       No opcode decoding, target learning, or general return bypass is used. */
+    if (failure == JS_STOP_UNPROVED_RETURN_CONTEXT && m->rom_identity_ok &&
+        js_v05c_pack_key(m->diagnostic_current_key) == JS_V05C_KEY_CONST(0x80u,0xD40Fu,0u,0u,0u) &&
+        current.pbr == 0x80u && !current.e && !current.m && !current.x) {
+        static const uint16_t entity_returns[] = {
+            0x86A1u,0x86AFu,0x86BDu,0x86CBu,0x86D6u,0x86E1u,0x86ECu,0x86F7u,
+            0x8702u,0x870Du,0x8718u,0x8723u,0x872Eu,0x8739u,0x8744u,0x874Fu,
+            0x8762u,0x876Du,0x8778u,0x8783u,0x8797u,0x87A2u,0x87ADu,0x87C1u,
+            0x87CCu,0x87D7u,0x87E2u,0x87F6u,0x8801u,0x880Cu
+        };
+        for (size_t i=0;i<sizeof(entity_returns)/sizeof(entity_returns[0]);i++)
+            if(current.pc==entity_returns[i])return JS_STOP_NONE;
+    }
     if (m) {
         size_t stored = count < JS_V05C_DIAGNOSTIC_EXPECTED_CAPACITY ?
                         count : JS_V05C_DIAGNOSTIC_EXPECTED_CAPACITY;

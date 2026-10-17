@@ -30,6 +30,9 @@ FetchContent_Declare(jungle_sdl
   DOWNLOAD_EXTRACT_TIMESTAMP TRUE
 )
 FetchContent_MakeAvailable(jungle_sdl)
+# SDL's supported assertion-filename override keeps build-machine paths out
+# of the portable binary while retaining assertions and subsystem behavior.
+target_compile_definitions(SDL3-static PRIVATE "SDL_ASSERT_FILE=\"SDL\"")
 
 add_executable(jungle-strike-launcher WIN32
   jungle_launcher_win32.c
@@ -231,3 +234,39 @@ add_custom_command(TARGET jungle-strike-launcher POST_BUILD
     "$<TARGET_FILE_DIR:jungle-strike-launcher>/SNES9X-LICENSE.txt"
   VERBATIM
 )
+
+# Hidden native-window integration check; never opens a visible app.
+add_executable(jungle-widescreen-ui-test
+  jungle_widescreen_ui_test.c jungle_app_core.c
+  jungle_audio_output_dsound_win32.c jungle_audio_resampler.c
+  jungle_frontend_settings_win32.c ../common/jungle_input_latch.c
+  "${JUNGLE_GAMEPAD_ADAPTER_DIR}/jungle_gamepad_input_win32.c")
+target_include_directories(jungle-widescreen-ui-test PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/../common"
+  "${JUNGLE_SOURCE_ROOT}/include" "${JUNGLE_GAMEPAD_ADAPTER_DIR}")
+target_link_libraries(jungle-widescreen-ui-test PRIVATE jungle_static_core SDL3::SDL3-static
+  user32 gdi32 comdlg32 comctl32 shell32 dsound dxguid winmm)
+target_compile_definitions(jungle-widescreen-ui-test PRIVATE
+  UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
+if(MSVC)
+  target_compile_options(jungle-widescreen-ui-test PRIVATE /W4 /WX)
+endif()
+
+add_test(NAME jungle_widescreen_ui COMMAND jungle-widescreen-ui-test)
+
+add_executable(jungle-widescreen-presentation-test EXCLUDE_FROM_ALL
+  jungle_widescreen_presentation_test.c jungle_app_core.c
+  jungle_audio_output_dsound_win32.c jungle_audio_resampler.c
+  jungle_frontend_settings_win32.c ../common/jungle_input_latch.c
+  "${JUNGLE_GAMEPAD_ADAPTER_DIR}/jungle_gamepad_input_win32.c")
+target_include_directories(jungle-widescreen-presentation-test PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/../common"
+  "${JUNGLE_SOURCE_ROOT}/include" "${JUNGLE_GAMEPAD_ADAPTER_DIR}")
+target_link_libraries(jungle-widescreen-presentation-test PRIVATE jungle_static_core SDL3::SDL3-static
+  user32 gdi32 comdlg32 comctl32 shell32 dsound dxguid winmm)
+target_compile_definitions(jungle-widescreen-presentation-test PRIVATE
+  UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
+
+add_executable(jungle-return-domain-test "${JUNGLE_SOURCE_ROOT}/tools/widescreen/return_domain_test.c")
+target_link_libraries(jungle-return-domain-test PRIVATE jungle_static_core)
+add_test(NAME jungle_return_domain COMMAND jungle-return-domain-test)

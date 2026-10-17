@@ -1,10 +1,20 @@
+New in version 1.1.0 - Widescreen
+Optional 16:9 Widescreen adds scenery on all four sides. Gameplay
+messages sit near the new bottom edge, with scenery around them.
+Map, Mission and Status use the wider screen without stretching
+text or hiding statistics. Use the toolbar checkbox or Settings >
+Widescreen to switch between the normal display and Widescreen, including
+during play. Both controls operate the same setting.
+A one-time Notice explains that Wide Screen is experimental. Its Close
+button dismisses the window; settings.ini remembers it has been shown.
+
 Jungle Strike (SNES) Static Recompilation
-Version: 1.0.0
+Version: 1.1.0
 Platform: Native 64-bit Windows 10 and Windows 11
 Executable: Launcher.exe
 ROM: Required externally; not included
 
-Version 1.0.0 frontend features
+Version 1.1.0 frontend features
 --------------------------------
 
 - Native Win32 launcher, menus, toolbar, settings windows and accessible
@@ -89,6 +99,8 @@ Keyboard shortcuts
 ------------------
 
 Escape  Play or pause; switch between the game and launcher
+1       Save the current snapshot slot
+2       Load the current snapshot slot
 F1      Welcome and shortcut help
 F2      Save Snapshot window
 F3      Load Snapshot window
@@ -97,5 +109,3 @@ F5      Controller Bindings
 F6      Audio Settings
 F7      Run the selected ROM
 F8      Capture a screenshot
-1       Save the current snapshot slot
-2       Load the current snapshot slot
