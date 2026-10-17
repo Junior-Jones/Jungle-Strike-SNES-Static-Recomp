@@ -8,6 +8,8 @@ The jungle-snapshot-display-test target accepts ROM, SNAPSHOT, OUTPUT_DIRECTORY.
 It checks immediate 512x288 output after a paused load and mode toggles, without
 running an emulated frame. Native crop/HUD/console pixels and serialized guest
 state must remain unchanged. Existing snapshot files remain compatible.
+It also checks that a stale image after headless execution is not combined
+with newer scene state, and that the next rendered frame restores wide output.
 
 Build the root jungle-widescreen-verify target in Release. Invoke it with:
   jungle-widescreen-verify.exe ROM GAMEPLAY_SNAPSHOT OUTPUT_DIRECTORY

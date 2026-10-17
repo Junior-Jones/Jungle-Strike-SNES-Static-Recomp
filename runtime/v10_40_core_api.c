@@ -333,7 +333,7 @@ int jungle_core_set_widescreen(JungleStaticCore *c,int enabled){
     if(!c)return 0;
     if(enabled&&!c->wide){c->wide=(JungleWideState*)calloc(1,sizeof(*c->wide));if(!c->wide)return 0;}
     if(c->wide){c->wide->enabled=enabled!=0;jungle_wide_invalidate(c->wide);}
-    if(c->frame_valid)
+    if(c->frame_valid && c->render_observer_synchronized)
         jungle_wide_restore_frame(c->wide,&c->machine,c->rom,c->rom_size,c->frame_bgra);
     return 1;
 }
@@ -421,7 +421,7 @@ int jungle_core_load_snapshot(JungleStaticCore *c,const void *src,size_t src_siz
     js_machine_v10_40_snapshot_rebind(&c->machine,rom,rom_size,c,
                                       js_core_ppu_event_v10_88);
     c->audio_batch_frames=0u;
-    if(c->frame_valid)
+    if(c->frame_valid && c->render_observer_synchronized)
         jungle_wide_restore_frame(c->wide,&c->machine,c->rom,c->rom_size,c->frame_bgra);
     return 1;
 }

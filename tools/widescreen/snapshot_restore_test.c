@@ -50,6 +50,28 @@ int main(int argc, char **argv) {
   printf("PASS paused snapshot load and mode switching: immediate 512x288; "
          "native crop/HUD/console preserved; guest snapshot bytes identical; "
          "zero emulated frames advanced\n");
+  /* A headless step deliberately leaves the last rendered native image in
+     place. Never combine that image with a newer scene on load or enable. */
+  if (!jungle_core_run_frame_headless(native, 0, 0) ||
+      !jungle_core_run_frame_headless(wide, 0, 0) ||
+      !jungle_core_save_snapshot(native, snapshot, size) ||
+      !jungle_core_load_snapshot(wide, snapshot, size) ||
+      !jungle_core_get_frame(wide, &frame) || frame.width != 256u ||
+      memcmp(frame.bgra_pixels, native->frame_bgra, sizeof(native->frame_bgra)) ||
+      !jungle_core_set_widescreen(wide, 0) ||
+      !jungle_core_set_widescreen(wide, 1) ||
+      !jungle_core_get_frame(wide, &frame) || frame.width != 256u ||
+      !jungle_core_save_snapshot(native, before, size) ||
+      !jungle_core_save_snapshot(wide, after, size) || memcmp(before, after, size))
+    return 1;
+  if (!jungle_core_run_frame(native, 0, 0) ||
+      !jungle_core_run_frame(wide, 0, 0) ||
+      !jungle_core_get_frame(wide, &frame) || frame.width != 512u ||
+      !compare_frame(native, wide) ||
+      !jungle_core_save_snapshot(native, before, size) ||
+      !jungle_core_save_snapshot(wide, after, size) || memcmp(before, after, size))
+    return 1;
+  puts("PASS stale headless snapshots: no mixed-scene restoration; load/enable preserve guest bytes; next rendered frame resynchronizes to 512x288");
   free(snapshot); free(before); free(after);
   jungle_core_destroy(native); jungle_core_destroy(wide);
   return 0;
