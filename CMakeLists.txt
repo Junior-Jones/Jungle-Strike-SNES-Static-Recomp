@@ -63,6 +63,11 @@ target_include_directories(jungle_static_core PUBLIC
 
 # Developer-only headless gameplay/visual regression harness.
 add_executable(jungle-widescreen-verify EXCLUDE_FROM_ALL tools/widescreen/verify.c)
+add_executable(jungle-snapshot-display-test EXCLUDE_FROM_ALL tools/widescreen/snapshot_restore_test.c)
+target_link_libraries(jungle-snapshot-display-test PRIVATE jungle_static_core)
+if(MSVC)
+  target_compile_definitions(jungle-snapshot-display-test PRIVATE _CRT_SECURE_NO_WARNINGS)
+endif()
 target_link_libraries(jungle-widescreen-verify PRIVATE jungle_static_core)
 if(MSVC)
   target_compile_definitions(jungle-widescreen-verify PRIVATE _CRT_SECURE_NO_WARNINGS)

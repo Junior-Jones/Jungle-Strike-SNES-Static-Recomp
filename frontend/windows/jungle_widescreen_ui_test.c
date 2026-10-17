@@ -157,11 +157,17 @@ int main(int argc, char **argv) {
     if (!jungle_recomp_snapshot_load(g_game, argv[2], error, sizeof(error)))
       return 9;
     SendMessageW(g_window, WM_COMMAND, ID_WIDESCREEN, 0);
+    if (jungle_recomp_frame_width(g_game) != 512 ||
+        jungle_recomp_frame_height(g_game) != 288) return 27;
     if (!jungle_recomp_widescreen_enabled(g_game) ||
         !jungle_recomp_advance(g_game, 0, 1, &result) ||
         jungle_recomp_frame_width(g_game) != 512 ||
         jungle_recomp_frame_height(g_game) != 288)
       return 10;
+    /* Loading while paused must restore the display without a Play/frame call. */
+    if (!jungle_recomp_snapshot_load(g_game, argv[2], error, sizeof(error)) ||
+        jungle_recomp_frame_width(g_game) != 512 ||
+        jungle_recomp_frame_height(g_game) != 288) return 28;
     utf8_to_wide(argv[3], output, ARRAY_COUNT(output));
     if (!capture_core_screenshot_to(output, saved, ARRAY_COUNT(saved)))
       return 11;

@@ -45,7 +45,9 @@ pixel size. Statistics sit on the far right and navigation along the bottom.
 Normal mode retains the original console and 4:3 presentation.
 
 Original snapshots remain compatible. Widescreen remains a host display
-choice when loading a snapshot or resetting. Firing tests also exposed an
+choice when loading a snapshot or resetting. Paused snapshot loads and display
+toggles rebuild the widescreen presentation immediately without advancing the
+game or changing the snapshot format. Firing tests also exposed an
 omitted static return domain: the cartridge-proven entity-dispatcher returns
 through $80:D40F now accept their 30 frozen, compiled caller continuations.
 All other return contexts still fail closed; no runtime decoding or learning
