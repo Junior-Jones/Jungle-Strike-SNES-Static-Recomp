@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(JungleStrikeStaticRecomp VERSION 1.1.0 LANGUAGES C CXX)
+project(JungleStrikeStaticRecomp VERSION 1.2.0 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -60,6 +60,15 @@ target_include_directories(jungle_static_core PUBLIC
   "${CMAKE_CURRENT_SOURCE_DIR}/generated/scpu"
   "${CMAKE_CURRENT_SOURCE_DIR}/generated/audio"
 )
+
+option(JUNGLE_ENABLE_IPO "Optimize Release code across translation units" ON)
+if(MSVC AND JUNGLE_ENABLE_IPO)
+  include(CheckIPOSupported)
+  check_ipo_supported(RESULT jungle_ipo_supported LANGUAGES C CXX)
+  if(jungle_ipo_supported)
+    set_property(TARGET jungle_static_core PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+  endif()
+endif()
 
 # Developer-only headless gameplay/visual regression harness.
 add_executable(jungle-widescreen-verify EXCLUDE_FROM_ALL tools/widescreen/verify.c)

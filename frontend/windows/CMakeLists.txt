@@ -65,6 +65,12 @@ else()
   )
 endif()
 enable_testing()
+add_executable(jungle-frame-rate-test jungle_frame_rate_test.c jungle_audio_resampler.c)
+target_include_directories(jungle-frame-rate-test PRIVATE "${CMAKE_CURRENT_LIST_DIR}")
+add_test(NAME jungle_frame_rate COMMAND jungle-frame-rate-test)
+add_executable(jungle-video-decode-test "${JUNGLE_SOURCE_ROOT}/tools/video/tile_decode_test.c")
+target_link_libraries(jungle-video-decode-test PRIVATE jungle_static_core)
+add_test(NAME jungle_video_decode COMMAND jungle-video-decode-test)
 add_test(NAME jungle_frontend_core_reset COMMAND jungle-frontend-core-test)
 
 add_executable(jungle-input-contract-test
@@ -267,6 +273,37 @@ target_link_libraries(jungle-widescreen-presentation-test PRIVATE jungle_static_
 target_compile_definitions(jungle-widescreen-presentation-test PRIVATE
   UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
 
+add_executable(jungle-frame-rate-headless-test EXCLUDE_FROM_ALL
+  jungle_frame_rate_headless_test.c jungle_app_core.c
+  jungle_audio_output_dsound_win32.c jungle_audio_resampler.c
+  jungle_frontend_settings_win32.c ../common/jungle_input_latch.c
+  "${JUNGLE_GAMEPAD_ADAPTER_DIR}/jungle_gamepad_input_win32.c")
+target_include_directories(jungle-frame-rate-headless-test PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}" "${CMAKE_CURRENT_LIST_DIR}/../common"
+  "${JUNGLE_SOURCE_ROOT}/include" "${JUNGLE_GAMEPAD_ADAPTER_DIR}")
+target_link_libraries(jungle-frame-rate-headless-test PRIVATE jungle_static_core SDL3::SDL3-static
+  user32 gdi32 comdlg32 comctl32 shell32 dsound dxguid winmm)
+target_compile_definitions(jungle-frame-rate-headless-test PRIVATE
+  UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
+
 add_executable(jungle-return-domain-test "${JUNGLE_SOURCE_ROOT}/tools/widescreen/return_domain_test.c")
 target_link_libraries(jungle-return-domain-test PRIVATE jungle_static_core)
 add_test(NAME jungle_return_domain COMMAND jungle-return-domain-test)
+
+add_executable(jungle-frame-rate-ui-test jungle_frame_rate_ui_test.c
+  "${JUNGLE_GAMEPAD_ADAPTER_DIR}/jungle_gamepad_input_win32.c")
+target_include_directories(jungle-frame-rate-ui-test PRIVATE
+  "${CMAKE_CURRENT_LIST_DIR}" "${JUNGLE_SOURCE_ROOT}/include" "${JUNGLE_GAMEPAD_ADAPTER_DIR}")
+target_compile_definitions(jungle-frame-rate-ui-test PRIVATE
+  UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX _CRT_SECURE_NO_WARNINGS)
+target_link_libraries(jungle-frame-rate-ui-test PRIVATE jungle_static_core SDL3::SDL3-static user32 gdi32 comctl32)
+add_test(NAME jungle_frame_rate_ui COMMAND jungle-frame-rate-ui-test)
+
+# Match the optimized core at final link; SDL keeps its own build policy.
+get_target_property(jungle_core_ipo jungle_static_core INTERPROCEDURAL_OPTIMIZATION_RELEASE)
+if(jungle_core_ipo)
+  get_directory_property(jungle_frontend_targets BUILDSYSTEM_TARGETS)
+  foreach(jungle_target IN LISTS jungle_frontend_targets)
+    set_property(TARGET ${jungle_target} PROPERTY INTERPROCEDURAL_OPTIMIZATION_RELEASE TRUE)
+  endforeach()
+endif()

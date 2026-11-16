@@ -101,6 +101,7 @@ void jungle_frontend_settings_win32_defaults(JungleStrikeFrontendSettingsWin32 *
     memset(s, 0, sizeof(*s));
     s->pause_on_focus_loss = 0;
     s->ntsc_frame_lock = 1;
+    s->exact_60_fps = 0;
     s->widescreen = 0;
     s->snapshot_slot = 1;
     s->input_source = JUNGLE_INPUT_SOURCE_KEYBOARD;
@@ -136,6 +137,9 @@ void jungle_frontend_settings_win32_load(JungleStrikeFrontendSettingsWin32 *s,
         L"General",L"ShowFpsCounter",0,path)!=0;
     s->ntsc_frame_lock=GetPrivateProfileIntW(
         L"General",L"NtscFrameLock",1,path)!=0;
+    s->exact_60_fps=GetPrivateProfileIntW(L"General",L"Exact60FPS",0,path)!=0;
+    s->fps60_notice_shown=GetPrivateProfileIntW(L"General",L"Exact60FPSNoticeShown",0,path)!=0;
+    if(s->exact_60_fps)s->ntsc_frame_lock=1;
     s->widescreen=GetPrivateProfileIntW(L"Display",L"Widescreen",0,path)!=0;
     s->widescreen_notice_shown=GetPrivateProfileIntW(
         L"Display",L"WidescreenNoticeShown",0,path)!=0;
@@ -184,6 +188,8 @@ int jungle_frontend_settings_win32_save(const JungleStrikeFrontendSettingsWin32 
     ok&=write_int(L"General",L"FullScreenOnPlay",s->fullscreen_on_play,path);
     ok&=write_int(L"General",L"ShowFpsCounter",s->show_fps_counter,path);
     ok&=write_int(L"General",L"NtscFrameLock",s->ntsc_frame_lock,path);
+    ok&=write_int(L"General",L"Exact60FPS",s->exact_60_fps,path);
+    ok&=write_int(L"General",L"Exact60FPSNoticeShown",s->fps60_notice_shown,path);
     ok&=write_int(L"Display",L"Widescreen",s->widescreen,path);
     ok&=write_int(L"Display",L"WidescreenNoticeShown",s->widescreen_notice_shown,path);
     ok&=write_int(L"General",L"SnapshotSlot",s->snapshot_slot,path);
@@ -392,7 +398,11 @@ static LRESULT CALLBACK settings_proc(HWND w,UINT msg,WPARAM wp,LPARAM lp){
         SendMessageW(scale,CB_SETCURSEL,c->value.integer_scale,0);
         set_font(CreateWindowW(L"BUTTON",L"Use full screen when Play starts",WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,32,202,320,24,w,(HMENU)ID_FULLSCREEN_SETTING,NULL,NULL));
         set_font(CreateWindowW(L"BUTTON",L"Show live FPS counter in the game title bar",WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,32,234,390,24,w,(HMENU)ID_FPS_COUNTER,NULL,NULL));
-        set_font(CreateWindowW(L"BUTTON",L"Lock game speed to natural NTSC (60.0988 FPS)",WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,32,266,410,24,w,(HMENU)ID_NTSC_FRAME_LOCK,NULL,NULL));
+        set_font(CreateWindowW(L"BUTTON",L"Lock frame rate (NTSC or selected 60 FPS)",
+            WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
+            32,266,472,24,w,(HMENU)ID_NTSC_FRAME_LOCK,NULL,NULL));
+        SendDlgItemMessageW(w,ID_NTSC_FRAME_LOCK,BM_SETCHECK,
+            c->value.ntsc_frame_lock?BST_CHECKED:BST_UNCHECKED,0);
 
         set_font(CreateWindowW(L"BUTTON",L"Apply",WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_DEFPUSHBUTTON,350,324,80,30,w,(HMENU)ID_APPLY,NULL,NULL));
         set_font(CreateWindowW(L"BUTTON",L"Close",WS_CHILD|WS_VISIBLE|WS_TABSTOP,440,324,80,30,w,(HMENU)ID_CANCEL,NULL,NULL));
@@ -402,8 +412,6 @@ static LRESULT CALLBACK settings_proc(HWND w,UINT msg,WPARAM wp,LPARAM lp){
             c->value.fullscreen_on_play?BST_CHECKED:BST_UNCHECKED,0);
         SendDlgItemMessageW(w,ID_FPS_COUNTER,BM_SETCHECK,
             c->value.show_fps_counter?BST_CHECKED:BST_UNCHECKED,0);
-        SendDlgItemMessageW(w,ID_NTSC_FRAME_LOCK,BM_SETCHECK,
-            c->value.ntsc_frame_lock?BST_CHECKED:BST_UNCHECKED,0);
         return 0;}
     case WM_COMMAND:
         if(!c)break;
@@ -416,8 +424,10 @@ static LRESULT CALLBACK settings_proc(HWND w,UINT msg,WPARAM wp,LPARAM lp){
                 w,ID_FULLSCREEN_SETTING,BM_GETCHECK,0,0)==BST_CHECKED;
             c->value.show_fps_counter=SendDlgItemMessageW(
                 w,ID_FPS_COUNTER,BM_GETCHECK,0,0)==BST_CHECKED;
-            c->value.ntsc_frame_lock=SendDlgItemMessageW(
-                w,ID_NTSC_FRAME_LOCK,BM_GETCHECK,0,0)==BST_CHECKED;
+            {
+                c->value.ntsc_frame_lock=SendDlgItemMessageW(w,ID_NTSC_FRAME_LOCK,BM_GETCHECK,0,0)==BST_CHECKED;
+                if(!c->value.ntsc_frame_lock)c->value.exact_60_fps=0;
+            }
             SendDlgItemMessageW(c->parent,1020,BM_SETCHECK,
                 SendDlgItemMessageW(w,ID_FULLSCREEN_SETTING,BM_GETCHECK,0,0),0);
             *c->target=c->value;c->accepted=1;DestroyWindow(w);return 0;

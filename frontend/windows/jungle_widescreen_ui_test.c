@@ -2,7 +2,7 @@
 #define wWinMain jungle_launcher_entry
 #include "jungle_launcher_win32.c"
 #undef wWinMain
-static int capture_notice(const char *directory) {
+static int capture_notice(const char *directory, const wchar_t *filename) {
   RECT area;
   BITMAPINFO bmi;
   uint32_t *pixels;
@@ -35,12 +35,69 @@ static int capture_notice(const char *directory) {
   SetViewportOrgEx(dc, 0, 0, NULL);
   GdiFlush();
   utf8_to_wide(directory, output, ARRAY_COUNT(output));
-  join_wide_path(path, ARRAY_COUNT(path), output, L"notice-client.bmp");
+  join_wide_path(path, ARRAY_COUNT(path), output, filename);
   ok = save_bgra_bmp(path, (const uint8_t *)pixels, area.right, area.bottom, area.right * 4);
   SelectObject(dc, previous);
   DeleteObject(bitmap);
   DeleteDC(dc);
   return ok;
+}
+
+static int check_fps60_controls(int argc,char **argv) {
+  unsigned origin;
+  JungleStrikeFrontendSettingsWin32 loaded;
+  QueryPerformanceFrequency(&g_qpc_frequency);
+  if(g_frontend_settings.exact_60_fps||
+     SendMessageW(g_fps60_checkbox,BM_GETCHECK,0,0)!=BST_UNCHECKED||
+     (GetMenuState(g_menu,ID_FPS60,MF_BYCOMMAND)&MF_CHECKED))return 30;
+  for(origin=0;origin<2;origin++) {
+    wchar_t title[64],body[256],label[32];
+    RECT text,button,client,required;
+    HDC dc;HGDIOBJ font;
+    g_frontend_settings.exact_60_fps=0;
+    g_frontend_settings.fps60_notice_shown=0;
+    update_controls();
+    if(origin)SendMessageW(g_fps60_checkbox,BM_CLICK,0,0);
+    else SendMessageW(g_window,WM_COMMAND,ID_FPS60,0);
+    if(!g_frontend_settings.exact_60_fps||!g_frontend_settings.ntsc_frame_lock||
+       !g_frontend_settings.fps60_notice_shown||g_frame_clock.numerator!=60u||
+       SendMessageW(g_fps60_checkbox,BM_GETCHECK,0,0)!=BST_CHECKED||
+       !(GetMenuState(g_menu,ID_FPS60,MF_BYCOMMAND)&MF_CHECKED)||
+       !IsWindow(g_info_window)||IsWindowVisible(g_info_window))return 31;
+    GetWindowTextW(g_info_window,title,64);GetWindowTextW(g_info_state.text,body,256);
+    if(wcscmp(title,L"Notice")||wcscmp(body,
+        L"This is an experimental 60FPS, any issues you find please give feedback"))return 32;
+    dc=GetDC(g_info_state.text);
+    font=SelectObject(dc,(HGDIOBJ)SendMessageW(g_info_state.text,WM_GETFONT,0,0));
+    GetClientRect(g_info_state.text,&text);required=(RECT){0,0,text.right-8,0};
+    DrawTextW(dc,body,-1,&required,DT_CALCRECT|DT_WORDBREAK|DT_NOPREFIX);
+    SelectObject(dc,font);ReleaseDC(g_info_state.text,dc);
+    if(required.bottom>text.bottom-4)return 33;
+    GetWindowRect(g_info_state.close_button,&button);
+    MapWindowPoints(NULL,g_info_window,(POINT*)&button,2);
+    GetClientRect(g_info_window,&client);
+    GetWindowTextW(g_info_state.close_button,label,32);
+    if(wcscmp(label,L"&Close")||client.bottom-button.bottom!=16||button.top<text.bottom+16)return 34;
+    if(argc==4&&!capture_notice(argv[3],L"fps60-notice.bmp"))return 35;
+    SendMessageW(g_info_state.close_button,BM_CLICK,0,0);
+    if(IsWindow(g_info_window))return 36;
+    jungle_frontend_settings_win32_load(&loaded,g_settings_ini_path);
+    if(!loaded.exact_60_fps||!loaded.fps60_notice_shown||!loaded.widescreen_notice_shown)return 37;
+    SendMessageW(g_window,WM_COMMAND,ID_FPS60,0);
+    if(g_frontend_settings.exact_60_fps||g_frame_clock.numerator!=JUNGLE_NATIVE_FPS_NUMERATOR||
+       (GetMenuState(g_menu,ID_FPS60,MF_BYCOMMAND)&MF_CHECKED)||IsWindow(g_info_window))return 38;
+    jungle_frontend_settings_win32_load(&g_frontend_settings,g_settings_ini_path);
+    update_controls();SendMessageW(g_window,WM_COMMAND,ID_FPS60,0);
+    if(!g_frontend_settings.exact_60_fps||IsWindow(g_info_window))return 39;
+    SendMessageW(g_window,WM_COMMAND,ID_FPS60,0);
+  }
+  InterlockedExchange(&g_loading,1);
+  SendMessageW(g_fps60_checkbox,BM_CLICK,0,0);
+  SendMessageW(g_window,WM_COMMAND,ID_FPS60,0);
+  InterlockedExchange(&g_loading,0);update_controls();
+  if(g_frontend_settings.exact_60_fps||SendMessageW(g_fps60_checkbox,BM_GETCHECK,0,0)!=BST_UNCHECKED)return 40;
+  puts("PASS 60 FPS: off by default, checkbox/menu sync, exact Notice text fits, bottom Close, once per config across reload, clock switch, loading guard");
+  return 0;
 }
 int main(int argc, char **argv) {
   WNDCLASSEXW wc;
@@ -104,7 +161,7 @@ int main(int argc, char **argv) {
       return 20;
     if (LOWORD(SendMessageW(g_info_window, DM_GETDEFID, 0, 0)) != ID_INFO_CLOSE)
       return 25;
-    if (argc == 4 && !capture_notice(argv[3])) return 26;
+    if (argc == 4 && !capture_notice(argv[3],L"notice-client.bmp")) return 26;
     SendMessageW(g_info_window, WM_COMMAND, ID_INFO_CLOSE, 0);
     if (IsWindow(g_info_window)) return 21;
   }
@@ -129,6 +186,7 @@ int main(int argc, char **argv) {
     return 24;
   SendMessageW(g_window, WM_COMMAND, ID_WIDESCREEN, 0);
   puts("PASS one-time Notice: menu and checkbox, fitted text, bottom Close button, persisted dismissal after reload");
+  {int result=check_fps60_controls(argc,argv);if(result)return result;}
   ZeroMemory(&minimum, sizeof(minimum));
   SendMessageW(g_window, WM_GETMINMAXINFO, 0, (LPARAM)&minimum);
   SetWindowPos(g_window, NULL, 0, 0, minimum.ptMinTrackSize.x,
@@ -138,6 +196,9 @@ int main(int argc, char **argv) {
   MapWindowPoints(NULL, g_window, (POINT *)&checkbox, 2);
   if (checkbox.right > client.right)
     return 6;
+  GetWindowRect(g_fps60_checkbox,&checkbox);
+  MapWindowPoints(NULL,g_window,(POINT*)&checkbox,2);
+  if(checkbox.right>client.right)return 41;
   if (argc == 4) {
     FILE *file = fopen(argv[1], "rb");
     uint8_t *rom = malloc(JUNGLE_RECOMP_ROM_SIZE);
@@ -156,6 +217,13 @@ int main(int argc, char **argv) {
     free(rom);
     if (!jungle_recomp_snapshot_load(g_game, argv[2], error, sizeof(error)))
       return 9;
+    {uint32_t before=jungle_recomp_current_frame(g_game);
+     SendMessageW(g_window,WM_COMMAND,ID_FPS60,0);
+     if(g_frame_clock.numerator!=60u||g_audio_output.source_rate_hz>=32040.0||
+        jungle_recomp_current_frame(g_game)!=before)return 42;
+     SendMessageW(g_window,WM_COMMAND,ID_FPS60,0);
+     if(g_frame_clock.numerator!=JUNGLE_NATIVE_FPS_NUMERATOR||g_audio_output.source_rate_hz!=32040.0||
+        jungle_recomp_current_frame(g_game)!=before)return 43;}
     SendMessageW(g_window, WM_COMMAND, ID_WIDESCREEN, 0);
     if (jungle_recomp_frame_width(g_game) != 512 ||
         jungle_recomp_frame_height(g_game) != 288) return 27;

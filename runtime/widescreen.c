@@ -152,29 +152,39 @@ static int terrain_column(JungleWideState *wide, const uint8_t *w,
   wide->column_key[slot] = x;
   return 1;
 }
-static js_stop_reason tile_pixel(const js_ppu_v09c *ppu, uint16_t raw,
+typedef struct WideTileRowCache {
+  int valid;
+  uint16_t base, tile;
+  uint8_t y, pixels[8];
+} WideTileRowCache;
+static js_stop_reason tile_pixel(const js_ppu_v09c *ppu, WideTileRowCache *cache, uint16_t raw,
                                  unsigned fine_x, unsigned fine_y,
                                  unsigned layer, uint16_t *color,
                                  uint8_t *priority) {
   js_tilemap_entry_v10_28 entry;
   js_bg_character_v10_28 chr;
-  uint8_t row[8];
   js_stop_reason stop;
   js_renderer_v10_28_decode_tilemap_entry(raw, &entry);
   stop = js_renderer_v10_28_bg_resolve_character(&entry, 16u, (uint8_t)fine_x,
                                                  (uint8_t)fine_y, &chr);
   if (stop != JS_STOP_NONE)
     return stop;
-  stop = js_renderer_v10_28_decode_tile_row(
-      ppu, ppu->layer[layer].chr_address, chr.tile_index, 4u, chr.pixel_y, row);
-  if (stop != JS_STOP_NONE)
-    return stop;
-  if (!row[chr.pixel_x]) {
+  if (!cache->valid || cache->base != ppu->layer[layer].chr_address ||
+      cache->tile != chr.tile_index || cache->y != chr.pixel_y) {
+    stop = js_renderer_v10_28_decode_tile_row(
+        ppu, ppu->layer[layer].chr_address, chr.tile_index, 4u, chr.pixel_y, cache->pixels);
+    if (stop != JS_STOP_NONE) return stop;
+    cache->valid = 1;
+    cache->base = ppu->layer[layer].chr_address;
+    cache->tile = chr.tile_index;
+    cache->y = chr.pixel_y;
+  }
+  if (!cache->pixels[chr.pixel_x]) {
     *priority = 0u;
     return JS_STOP_NONE;
   }
   stop = js_renderer_v10_28_read_cgram_color(
-      ppu, (uint16_t)(entry.palette * 16u + row[chr.pixel_x]), color);
+      ppu, (uint16_t)(entry.palette * 16u + cache->pixels[chr.pixel_x]), color);
   if (stop != JS_STOP_NONE)
     return stop;
   return js_renderer_v10_29_mode1_priority_slot(ppu, layer, entry.priority,
@@ -305,6 +315,15 @@ static js_stop_reason render_row(JungleWideState *wide,
   int sprite_rows[128], sprite_columns[128];
   unsigned sprite_indices[128];
   unsigned count = 0u, records[512], record_count = 0u, x, i;
+  /* VRAM cannot change during this synchronous row render. Cache lazily so
+     hidden/unread tiles keep the original uninitialized-memory behavior. */
+  WideTileRowCache terrain_row = {0};
+  uint8_t obj_row_valid[128] = {0};
+  uint8_t obj_rows[128][8][8];
+  int selection_x = -2147483647, selection_y = -2147483647;
+  unsigned selection_record = 0u;
+  int camera_x = (int)word(w, 0x40u), camera_y = (int)word(w, 0x42u) - 1;
+  int world_x0, world_y;
   uint32_t *row =
       wide->work +
       (unsigned)(output_y + (int)JUNGLE_WIDE_MARGIN_Y) * JUNGLE_WIDE_WIDTH;
@@ -331,6 +350,11 @@ static js_stop_reason render_row(JungleWideState *wide,
     wide->map_base = word(w, 0x78u);
   }
   foreground_origin(wide, p, w);
+  world_x0 = camera_x +
+      ((int)((p->layer[1].h_scroll - (unsigned)camera_x + 256u) & 511u) - 256) -
+      (int)JUNGLE_WIDE_MARGIN + wide->render_shift_x;
+  world_y = camera_y +
+      ((int)((p->layer[1].v_scroll - (unsigned)camera_y + 256u) & 511u) - 256) + y;
   if (p->main_screen_layers & 16u)
     for (i = 0u; i < 128u; i++) {
       js_obj_record_v10_28 obj;
@@ -374,17 +398,13 @@ static js_stop_reason render_row(JungleWideState *wide,
           wide->work_hud_mask[(unsigned)(y - (int)JUNGLE_WIDE_HUD_TOP) * 256u +
                               x - JUNGLE_WIDE_MARGIN]))
       continue;
-    wx = (int)word(w, 0x40u);
-    wx += ((int)((p->layer[1].h_scroll - (unsigned)wx + 256u) & 511u) - 256);
-    wy = (int)word(w, 0x42u) - 1;
-    wy += ((int)((p->layer[1].v_scroll - (unsigned)wy + 256u) & 511u) - 256);
-    wx += sx;
-    wy += (int)y;
+    wx = world_x0 + (int)x;
+    wy = world_y;
     if ((p->main_screen_layers & 2u) && wx >= 0 && wy >= 0 &&
         wy < (int)word(w, 0x10f6au) &&
         terrain_column(wide, w, rom, size, wx / 16)) {
       uint16_t raw = wide->columns[(unsigned)(wx / 16) & 63u][wy / 16];
-      stop = tile_pixel(p, raw, (unsigned)wx & 15u, (unsigned)wy & 15u, 1u,
+      stop = tile_pixel(p, &terrain_row, raw, (unsigned)wx & 15u, (unsigned)wy & 15u, 1u,
                         &color, &priority);
       if (stop != JS_STOP_NONE)
         return stop;
@@ -402,14 +422,20 @@ static js_stop_reason render_row(JungleWideState *wide,
       uint8_t slot;
       /* The guest builds a tilemap, so later records replace whole cells,
          including transparent cells, rather than blending their pixels. */
-      for (i = 0u; i < record_count; i++) {
-        unsigned o = records[i];
-        int tx = world_tx - (int)word(w, o + 8u);
-        int ty = world_ty - (int)word(w, o + 10u);
-        if (tx >= 0 && ty >= 0 && (unsigned)tx < word(w, o + 16u) &&
-            (unsigned)ty < word(w, o + 18u))
-          selected = o;
+      if (selection_x != world_tx || selection_y != world_ty) {
+        for (i = 0u; i < record_count; i++) {
+          unsigned o = records[i];
+          int tx = world_tx - (int)word(w, o + 8u);
+          int ty = world_ty - (int)word(w, o + 10u);
+          if (tx >= 0 && ty >= 0 && (unsigned)tx < word(w, o + 16u) &&
+              (unsigned)ty < word(w, o + 18u))
+            selected = o;
+        }
+        selection_record = selected;
+        selection_x = world_tx;
+        selection_y = world_ty;
       }
+      selected = selection_record;
       if (selected &&
           scenery_pixel(w, rom, size, selected,
                         world_tx - (int)word(w, selected + 8u),
@@ -429,7 +455,7 @@ static js_stop_reason render_row(JungleWideState *wide,
       int ox = sprite_columns[i], local;
       unsigned px, py;
       uint16_t tile, cg;
-      uint8_t indices[8], index, slot;
+      uint8_t index, slot;
       local = sx - ox;
       if (local < 0 || local >= obj->size.width)
         continue;
@@ -439,16 +465,17 @@ static js_stop_reason render_row(JungleWideState *wide,
         px = obj->size.width - 1u - px;
       if (obj->vflip)
         py = obj->size.height - 1u - py;
-      stop = js_renderer_v10_28_obj_tile_word_address(
-          p, obj->tile_low, obj->name_select, (uint8_t)(px / 8u),
-          (uint8_t)(py / 8u), &tile);
-      if (stop != JS_STOP_NONE)
-        return stop;
-      stop = js_renderer_v10_28_decode_tile_row(p, tile, 0u, 4u,
-                                                (uint8_t)(py & 7u), indices);
-      if (stop != JS_STOP_NONE)
-        return stop;
-      index = indices[px & 7u];
+      if (!(obj_row_valid[i] & (1u << (px / 8u)))) {
+        stop = js_renderer_v10_28_obj_tile_word_address(
+            p, obj->tile_low, obj->name_select, (uint8_t)(px / 8u),
+            (uint8_t)(py / 8u), &tile);
+        if (stop != JS_STOP_NONE) return stop;
+        stop = js_renderer_v10_28_decode_tile_row(p, tile, 0u, 4u,
+            (uint8_t)(py & 7u), obj_rows[i][px / 8u]);
+        if (stop != JS_STOP_NONE) return stop;
+        obj_row_valid[i] |= (uint8_t)(1u << (px / 8u));
+      }
+      index = obj_rows[i][px / 8u][px & 7u];
       if (!index)
         continue;
       slot = js_renderer_v10_30_obj_priority_slot(p, obj->priority);

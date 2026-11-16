@@ -51,6 +51,19 @@ js_stop_reason js_renderer_v10_29_mode1_priority_slot(const js_ppu_v09c *ppu,
                                                        uint8_t *slot);
 
 /* Core-owned background sample. Color index zero remains transparent. */
+/* Zero-initialize a prepared-row cache for each PPU/scanline. It is valid only
+   while VRAM, palette, knownness and this row's PPU configuration are unchanged. */
+typedef struct js_bg_row_cache_v10_29 {
+    uint16_t base, tile;
+    uint8_t valid, bpp, y, pixels[8];
+    uint8_t span_valid, reverse, first_pixel, palette_stride;
+    uint16_t start_x, end_x, screen_y;
+    unsigned layer;
+    js_bg_pixel_v10_29 sample;
+} js_bg_row_cache_v10_29;
+js_stop_reason js_renderer_v10_29_sample_mode1_bg_cached(const js_ppu_v09c *ppu,
+    unsigned layer, uint16_t screen_x, uint16_t screen_y,
+    js_bg_pixel_v10_29 *sample, js_bg_row_cache_v10_29 *cache);
 js_stop_reason js_renderer_v10_29_sample_mode1_bg(const js_ppu_v09c *ppu,
                                                   unsigned layer,
                                                   uint16_t screen_x,
