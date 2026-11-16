@@ -70,7 +70,7 @@ uint64_t js_v05c_pack_key(js_static_context_key key) {
 }
 
 js_static_context_key js_v05c_key_from_cpu(const js_cpu65816_state *s) {
-    js_static_context_key key = {0};
+    js_static_context_key key;
     key.pbr = s->pbr;
     key.pc = s->pc;
     key.e = (uint8_t)(s->e & 1u);

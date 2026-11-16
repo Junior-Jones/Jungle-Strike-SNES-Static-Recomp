@@ -1,7 +1,6 @@
 #include <stddef.h>
 #include <string.h>
 #include "jungle/renderer_v10_28.h"
-#include "video_plane_lut.inc"
 
 static uint8_t js_v10_28_expand5(uint8_t value) {
     return (uint8_t)((value << 3u) | (value >> 2u));
@@ -90,7 +89,6 @@ js_stop_reason js_renderer_v10_28_decode_tile_row(const js_ppu_v09c *ppu,
     uint16_t base_byte;
     uint16_t tile_bytes;
     uint8_t pair;
-    uint32_t packed = 0u;
     js_stop_reason stop = js_v10_28_validate_ppu_output(ppu, pixels);
     if (stop != JS_STOP_NONE) return stop;
     if (row >= 8u) return JS_STOP_V10_28_RENDERER_INVALID_ARGUMENT;
@@ -112,19 +110,11 @@ js_stop_reason js_renderer_v10_28_decode_tile_row(const js_ppu_v09c *ppu,
         if (stop != JS_STOP_NONE) return stop;
         stop = js_renderer_v10_28_read_vram_byte(ppu, (uint16_t)(row_address + 1u), &plane1);
         if (stop != JS_STOP_NONE) return stop;
-        if (bpp <= 4u) {
-            packed |= js_v10_28_plane_lanes[plane0] << (pair * 2u);
-            packed |= js_v10_28_plane_lanes[plane1] << (pair * 2u + 1u);
-        } else for (x = 0u; x < JS_V10_28_TILE_PIXELS; ++x) {
+        for (x = 0u; x < JS_V10_28_TILE_PIXELS; ++x) {
             unsigned bit = 7u - x;
             pixels[x] |= (uint8_t)(((plane0 >> bit) & 1u) << (pair * 2u));
             pixels[x] |= (uint8_t)(((plane1 >> bit) & 1u) << (pair * 2u + 1u));
         }
-    }
-    if (bpp <= 4u) {
-        unsigned x;
-        for (x = 0u; x < JS_V10_28_TILE_PIXELS; ++x)
-            pixels[x] = (uint8_t)((packed >> (x * 4u)) & 15u);
     }
     return JS_STOP_NONE;
 }

@@ -69,31 +69,20 @@ js_stop_reason js_renderer_v10_29_mode1_priority_slot(const js_ppu_v09c *ppu,
     return JS_STOP_NONE;
 }
 
-js_stop_reason js_renderer_v10_29_sample_mode1_bg_cached(const js_ppu_v09c *ppu,
+js_stop_reason js_renderer_v10_29_sample_mode1_bg(const js_ppu_v09c *ppu,
                                                   unsigned layer,
                                                   uint16_t screen_x,
                                                   uint16_t screen_y,
-                                                  js_bg_pixel_v10_29 *sample,
-                                                  js_bg_row_cache_v10_29 *cache) {
+                                                  js_bg_pixel_v10_29 *sample) {
     js_bg_layer_desc_v10_29 desc;
     js_bg_coordinate_v10_28 coord;
     js_tilemap_entry_v10_28 entry;
     js_bg_character_v10_28 chr;
     uint8_t row[JS_V10_28_TILE_PIXELS];
-    const uint8_t *indices = row;
     uint16_t raw;
     uint16_t cgram_index;
     js_stop_reason stop = js_v10_29_validate(ppu, sample);
     if (stop != JS_STOP_NONE) return stop;
-    if (cache && cache->span_valid && cache->layer == layer &&
-        cache->screen_y == screen_y && screen_x >= cache->start_x && screen_x < cache->end_x) {
-        unsigned offset = screen_x - cache->start_x;
-        unsigned pixel_x = cache->reverse ? cache->first_pixel - offset : cache->first_pixel + offset;
-        *sample = cache->sample;
-        sample->color_index = cache->pixels[pixel_x];
-        desc.palette_stride = cache->palette_stride;
-        goto resolve_color;
-    }
     memset(sample, 0, sizeof(*sample));
     if (layer >= 4u) return JS_STOP_V10_29_RENDERER_INVALID_ARGUMENT;
     if (ppu->mosaic_enabled & (uint8_t)(1u << layer))
@@ -111,27 +100,14 @@ js_stop_reason js_renderer_v10_29_sample_mode1_bg_cached(const js_ppu_v09c *ppu,
     stop = js_renderer_v10_28_bg_resolve_character(&entry, coord.logical_tile_pixels,
                                                     coord.fine_x, coord.fine_y, &chr);
     if (stop != JS_STOP_NONE) return stop;
-    if (cache && cache->valid && cache->base == ppu->layer[layer].chr_address &&
-        cache->tile == chr.tile_index && cache->bpp == desc.bpp && cache->y == chr.pixel_y) {
-        indices = cache->pixels;
-    } else {
-        stop = js_renderer_v10_28_decode_tile_row(ppu, ppu->layer[layer].chr_address,
-                                                  chr.tile_index, desc.bpp, chr.pixel_y, row);
-        if (stop != JS_STOP_NONE) return stop;
-        if (cache) {
-            cache->valid = 1u;
-            cache->base = ppu->layer[layer].chr_address;
-            cache->tile = chr.tile_index;
-            cache->bpp = desc.bpp;
-            cache->y = chr.pixel_y;
-            memcpy(cache->pixels, row, sizeof(row));
-        }
-    }
+    stop = js_renderer_v10_28_decode_tile_row(ppu, ppu->layer[layer].chr_address,
+                                              chr.tile_index, desc.bpp, chr.pixel_y, row);
+    if (stop != JS_STOP_NONE) return stop;
 
     sample->layer = (uint8_t)layer;
     sample->bpp = desc.bpp;
     sample->palette = entry.palette;
-    sample->color_index = indices[chr.pixel_x];
+    sample->color_index = row[chr.pixel_x];
     sample->tile_priority = entry.priority;
     sample->tilemap_word_address = coord.tilemap_word_address;
     sample->tilemap_raw = raw;
@@ -140,33 +116,15 @@ js_stop_reason js_renderer_v10_29_sample_mode1_bg_cached(const js_ppu_v09c *ppu,
                                                   &sample->priority_slot);
     if (stop != JS_STOP_NONE) return stop;
 
-    if (cache) {
-        cache->span_valid = 1u;
-        cache->layer = layer;
-        cache->screen_y = screen_y;
-        cache->start_x = screen_x;
-        cache->end_x = (uint16_t)(screen_x + 8u - (coord.fine_x & 7u));
-        if (cache->end_x > 256u) cache->end_x = 256u;
-        cache->first_pixel = chr.pixel_x;
-        cache->reverse = entry.hflip;
-        cache->palette_stride = desc.palette_stride;
-        cache->sample = *sample;
-    }
-resolve_color:
     if (sample->color_index == 0u) {
         sample->transparent = 1u;
         return JS_STOP_NONE;
     }
-    cgram_index = (uint16_t)((uint16_t)sample->palette * desc.palette_stride + sample->color_index);
+    cgram_index = (uint16_t)((uint16_t)entry.palette * desc.palette_stride + sample->color_index);
     if (cgram_index >= 128u) return JS_STOP_V10_29_RENDERER_INVALID_ARGUMENT;
     sample->cgram_index = cgram_index;
     stop = js_renderer_v10_28_read_cgram_color(ppu, cgram_index, &sample->bgr555);
     if (stop != JS_STOP_NONE) return stop;
     js_renderer_v10_28_bgr555_to_rgb8(sample->bgr555, &sample->rgb);
     return JS_STOP_NONE;
-}
-
-js_stop_reason js_renderer_v10_29_sample_mode1_bg(const js_ppu_v09c *ppu,
-    unsigned layer, uint16_t screen_x, uint16_t screen_y, js_bg_pixel_v10_29 *sample) {
-    return js_renderer_v10_29_sample_mode1_bg_cached(ppu, layer, screen_x, screen_y, sample, NULL);
 }

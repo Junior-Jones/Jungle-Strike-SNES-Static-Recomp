@@ -105,7 +105,6 @@ typedef struct JungleStrikeAudioOutput {
     uint32_t fade_frames_total;
     int starved_last_pump;
     double playback_ratio;
-    double source_rate_hz;
     wchar_t opened_device_name[JUNGLE_AUDIO_DEVICE_NAME_CAPACITY];
     JungleStrikeAudioDiagnostics diagnostics;
 } JungleStrikeAudioOutput;
@@ -121,7 +120,6 @@ int jungle_audio_device_name(UINT device_index, wchar_t *name,
                              size_t name_capacity);
 
 void jungle_audio_output_initialize(JungleStrikeAudioOutput *output);
-void jungle_audio_output_set_source_rate(JungleStrikeAudioOutput *output, double rate);
 int jungle_audio_output_open(JungleStrikeAudioOutput *output,
                              const JungleStrikeAudioSettings *settings,
                              HWND owner, wchar_t *error,

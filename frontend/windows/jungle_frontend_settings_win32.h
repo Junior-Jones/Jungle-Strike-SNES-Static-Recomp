@@ -24,8 +24,6 @@ typedef struct JungleStrikeFrontendSettingsWin32 {
     int fullscreen_on_play;
     int show_fps_counter;
     int ntsc_frame_lock;
-    int exact_60_fps;
-    int fps60_notice_shown;
     int widescreen;
     int widescreen_notice_shown;
     int snapshot_slot;

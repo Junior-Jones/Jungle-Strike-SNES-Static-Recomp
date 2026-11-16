@@ -10,7 +10,6 @@
 #include "jungle_frontend_settings_win32.h"
 #include "jungle_app_core.h"
 #include "jungle_input_latch.h"
-#include "jungle_frame_rate.h"
 
 #include <stdint.h>
 #include <stdio.h>
@@ -55,7 +54,6 @@
 #define ID_SCREENSHOT 1021
 #define ID_AUTO_RUN 1022
 #define ID_WIDESCREEN 1023
-#define ID_FPS60 1026
 #define ID_SNAPSHOT_SAVE_CURRENT 1024
 #define ID_SNAPSHOT_LOAD_CURRENT 1025
 #define ID_SNAPSHOT_SLOT_BASE 5000
@@ -167,7 +165,6 @@ static HWND g_settings_button;
 static HWND g_fullscreen_checkbox;
 static HWND g_auto_run_checkbox;
 static HWND g_widescreen_checkbox;
-static HWND g_fps60_checkbox;
 static HWND g_rom_path;
 static HWND g_status;
 static HWND g_info_window;
@@ -203,7 +200,10 @@ static int g_settings_saved_on_exit;
 static int g_loaded_snapshot_slot = -1;
 static LARGE_INTEGER g_qpc_frequency;
 static HANDLE g_frame_timer;
-static JungleFrameClock g_frame_clock;
+static uint64_t g_qpc_ticks_per_frame_base;
+static uint32_t g_qpc_ticks_per_frame_remainder;
+static uint32_t g_qpc_remainder_accumulator;
+static uint64_t g_next_frame_deadline;
 static uint64_t g_pacing_timer_ticks;
 static uint64_t g_pacing_skipped_deadlines;
 static uint32_t g_pacing_max_batch;
@@ -708,7 +708,6 @@ static void set_toolbar_visible(int visible) {
     ShowWindow(g_fullscreen_checkbox, command);
     ShowWindow(g_auto_run_checkbox, command);
     ShowWindow(g_widescreen_checkbox, command);
-    ShowWindow(g_fps60_checkbox, command);
     ShowWindow(g_status, command);
 }
 
@@ -807,8 +806,6 @@ static void update_controls(void) {
     EnableWindow(g_fullscreen_checkbox, !loading);
     EnableWindow(g_auto_run_checkbox, !loading);
     EnableWindow(g_widescreen_checkbox, !loading);
-    EnableWindow(g_fps60_checkbox, !loading);
-    EnableMenuItem(g_menu,ID_FPS60,MF_BYCOMMAND|(loading?MF_GRAYED:MF_ENABLED));
     EnableMenuItem(g_menu,ID_WIDESCREEN,MF_BYCOMMAND|(loading?MF_GRAYED:MF_ENABLED));
     set_accessible_control_text(g_browse_button,
                                 rom_path_known() ? L"&Run" : L"&Browse", 1);
@@ -835,10 +832,6 @@ static void update_controls(void) {
                    BST_CHECKED ? MF_CHECKED : MF_UNCHECKED));
     CheckMenuItem(g_menu,ID_WIDESCREEN,MF_BYCOMMAND|
         (g_frontend_settings.widescreen?MF_CHECKED:MF_UNCHECKED));
-    SendMessageW(g_fps60_checkbox,BM_SETCHECK,
-        g_frontend_settings.exact_60_fps?BST_CHECKED:BST_UNCHECKED,0);
-    CheckMenuItem(g_menu,ID_FPS60,MF_BYCOMMAND|
-        (g_frontend_settings.exact_60_fps?MF_CHECKED:MF_UNCHECKED));
     if (!g_presentation_hidden) DrawMenuBar(g_window);
 }
 
@@ -863,40 +856,12 @@ static int open_audio(int show_error) {
         }
         return 0;
     }
-    jungle_audio_output_set_source_rate(&g_audio_output,
-        jungle_frame_rate_audio_source((double)JUNGLE_RECOMP_AUDIO_SAMPLE_RATE,
-            g_frontend_settings.ntsc_frame_lock, g_frontend_settings.exact_60_fps));
     return 1;
-}
-
-/* A running game has a display deadline even when its window is occluded or
-   audio is muted. Opt out of Windows' automatic EcoQoS/timer throttling only
-   while playing; paused launchers return to automatic power management. */
-static void set_playback_power_policy(int playing) {
-    PROCESS_POWER_THROTTLING_STATE state;
-    BOOL applied;
-    static int previous = -1;
-    if (previous == playing) return;
-    ZeroMemory(&state, sizeof(state));
-    state.Version = PROCESS_POWER_THROTTLING_CURRENT_VERSION;
-    if (playing)
-        state.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED |
-                            PROCESS_POWER_THROTTLING_IGNORE_TIMER_RESOLUTION;
-    applied = SetProcessInformation(GetCurrentProcess(), ProcessPowerThrottling,
-                                    &state, sizeof(state));
-    if (!applied && playing) {
-        /* Earlier Windows 10 versions do not expose the timer policy bit. */
-        state.ControlMask = PROCESS_POWER_THROTTLING_EXECUTION_SPEED;
-        applied = SetProcessInformation(GetCurrentProcess(), ProcessPowerThrottling,
-                                        &state, sizeof(state));
-    }
-    if (applied) previous = playing;
 }
 
 static void pause_game(const wchar_t *message) {
     jungle_audio_output_pause(&g_audio_output);
     g_paused = 1;
-    set_playback_power_policy(0);
     jungle_input_latch_reset(&g_keyboard_input);
     g_gamepad_input = 0u;
     restore_paused_presentation();
@@ -919,7 +884,6 @@ static void stop_game_on_core_failure(void) {
        present the exact repair evidence without enabling a fallback path. */
     jungle_audio_output_pause(&g_audio_output);
     g_paused = 1;
-    set_playback_power_policy(0);
     jungle_input_latch_reset(&g_keyboard_input);
     g_gamepad_input = 0u;
     detail[0] = L'\0';
@@ -1962,21 +1926,6 @@ static void show_widescreen_notice_once(void) {
     }
 }
 
-static void show_fps60_notice_once(void) {
-    if(g_frontend_settings.fps60_notice_shown)return;
-    /* A different information window must not swallow first-use feedback. */
-    if(IsWindow(g_info_window))SendMessageW(g_info_window,WM_CLOSE,0,0);
-    g_info_resume_after=g_game&&!g_paused;
-    if(g_info_resume_after)pause_game(L"Paused while Notice is open.");
-    show_information_window(L"Notice",
-        L"This is an experimental 60FPS, any issues you find please give feedback",520,190);
-    if(IsWindow(g_info_window)) {
-        g_frontend_settings.fps60_notice_shown=1;
-        if(!jungle_frontend_settings_win32_save(&g_frontend_settings,g_settings_ini_path))
-            set_status(L"Notice shown, but its one-time setting could not be saved.");
-    }
-}
-
 static HWND create_getting_started_text(HWND parent, const wchar_t *text,
                                         int x, int y, int width, int height,
                                         HFONT font) {
@@ -2257,7 +2206,15 @@ static void load_current_snapshot(void) {
 }
 
 static void advance_frame_deadline(void) {
-    jungle_frame_clock_advance(&g_frame_clock);
+    uint64_t frame_ticks = g_qpc_ticks_per_frame_base;
+    g_qpc_remainder_accumulator += g_qpc_ticks_per_frame_remainder;
+    if (g_qpc_remainder_accumulator >=
+        JUNGLE_RECOMP_PRESENTATION_FPS_NUMERATOR) {
+        frame_ticks += 1u;
+        g_qpc_remainder_accumulator -=
+            JUNGLE_RECOMP_PRESENTATION_FPS_NUMERATOR;
+    }
+    g_next_frame_deadline += frame_ticks;
 }
 
 static uint64_t qpc_ticks_to_100ns_ceil(uint64_t ticks) {
@@ -2281,10 +2238,10 @@ static int arm_frame_timer(void) {
     uint64_t delay_100ns;
     if (!g_frame_timer || g_qpc_frequency.QuadPart <= 0 ||
         !QueryPerformanceCounter(&now)) return 0;
-    if (g_frame_clock.deadline <= (uint64_t)now.QuadPart)
+    if (g_next_frame_deadline <= (uint64_t)now.QuadPart)
         delay_ticks = 1u;
     else
-        delay_ticks = g_frame_clock.deadline - (uint64_t)now.QuadPart;
+        delay_ticks = g_next_frame_deadline - (uint64_t)now.QuadPart;
     delay_100ns = qpc_ticks_to_100ns_ceil(delay_ticks);
     if (delay_100ns > (uint64_t)INT64_MAX) delay_100ns = (uint64_t)INT64_MAX;
     due.QuadPart = -(LONGLONG)delay_100ns;
@@ -2294,24 +2251,19 @@ static int arm_frame_timer(void) {
 static void schedule_unlocked_poll(uint64_t now_qpc) {
     uint64_t poll_ticks = (uint64_t)g_qpc_frequency.QuadPart / 1000u;
     if (!poll_ticks) poll_ticks = 1u;
-    g_frame_clock.accumulator = 0u;
-    g_frame_clock.deadline = now_qpc + poll_ticks;
+    g_qpc_remainder_accumulator = 0u;
+    g_next_frame_deadline = now_qpc + poll_ticks;
 }
 
 static void reset_pacing_clock(void) {
     LARGE_INTEGER now;
-    set_playback_power_policy(g_game != NULL && !g_paused);
     if (g_qpc_frequency.QuadPart <= 0 ||
         !QueryPerformanceCounter(&now)) {
-        g_frame_clock.deadline = 0u;
+        g_next_frame_deadline = 0u;
         return;
     }
-    (void)jungle_frame_clock_init(&g_frame_clock,
-        (uint64_t)g_qpc_frequency.QuadPart, (uint64_t)now.QuadPart,
-        g_frontend_settings.exact_60_fps);
-    jungle_audio_output_set_source_rate(&g_audio_output,
-        jungle_frame_rate_audio_source((double)JUNGLE_RECOMP_AUDIO_SAMPLE_RATE,
-            g_frontend_settings.ntsc_frame_lock, g_frontend_settings.exact_60_fps));
+    g_qpc_remainder_accumulator = 0u;
+    g_next_frame_deadline = (uint64_t)now.QuadPart;
     if (!g_frontend_settings.ntsc_frame_lock)
         schedule_unlocked_poll((uint64_t)now.QuadPart);
     (void)arm_frame_timer();
@@ -2363,7 +2315,7 @@ static void service_host_timer(void) {
         (void)arm_frame_timer();
         return;
     }
-    if ((uint64_t)before.QuadPart < g_frame_clock.deadline) {
+    if ((uint64_t)before.QuadPart < g_next_frame_deadline) {
         (void)arm_frame_timer();
         return;
     }
@@ -2408,22 +2360,17 @@ static void service_host_timer(void) {
        wall-clock time cannot become extra emulation and extra queued PCM. */
     advance_frame_deadline();
     if (QueryPerformanceCounter(&after)) {
-        late_tolerance = g_frame_clock.base_ticks /
+        late_tolerance = g_qpc_ticks_per_frame_base /
                          HOST_LATE_REBASE_DIVISOR;
-        /* Exact60 retains its absolute phase across ordinary timer jitter.
-           Still render at most one guest field per service call, and rebase
-           after a genuine stall rather than accumulating unbounded debt. */
-        if (g_frontend_settings.exact_60_fps)
-            late_tolerance = g_frame_clock.base_ticks * 2u;
         if (!late_tolerance) late_tolerance = 1u;
-        if ((uint64_t)after.QuadPart > g_frame_clock.deadline +
+        if ((uint64_t)after.QuadPart > g_next_frame_deadline +
             late_tolerance) {
             g_pacing_skipped_deadlines +=
-                ((uint64_t)after.QuadPart - g_frame_clock.deadline) /
-                    (g_frame_clock.base_ticks ?
-                         g_frame_clock.base_ticks : 1u) + 1u;
-            g_frame_clock.accumulator = 0u;
-            g_frame_clock.deadline = (uint64_t)after.QuadPart;
+                ((uint64_t)after.QuadPart - g_next_frame_deadline) /
+                    (g_qpc_ticks_per_frame_base ?
+                         g_qpc_ticks_per_frame_base : 1u) + 1u;
+            g_qpc_remainder_accumulator = 0u;
+            g_next_frame_deadline = (uint64_t)after.QuadPart;
             ++g_pacing_resyncs;
         }
     } else {
@@ -2451,7 +2398,6 @@ static void layout_controls(HWND window) {
     MoveWindow(g_auto_run_checkbox, 610, 10,
                width > 820 ? 88 : 82, 26, TRUE);
     MoveWindow(g_widescreen_checkbox,704,10,108,26,TRUE);
-    MoveWindow(g_fps60_checkbox,818,10,88,26,TRUE);
     MoveWindow(g_status, 12, 48, width - 24, 24, TRUE);
 }
 
@@ -3121,7 +3067,6 @@ static HMENU create_menu_bar(void) {
     AppendMenuW(settings, MF_STRING, ID_FULLSCREEN,
                 L"Use &Full Screen When Playing");
     AppendMenuW(settings,MF_STRING,ID_WIDESCREEN,L"&Widescreen");
-    AppendMenuW(settings,MF_STRING,ID_FPS60,L"&60 FPS");
     AppendMenuW(settings, MF_STRING, ID_AUTO_RUN,
                 L"&Auto-Run at Startup");
     AppendMenuW(settings, MF_SEPARATOR, 0, NULL);
@@ -3348,10 +3293,6 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                 0,L"BUTTON",L"&Widescreen",
                 WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
                 704,10,108,26,window,(HMENU)(INT_PTR)ID_WIDESCREEN,g_instance,NULL);
-            g_fps60_checkbox=CreateWindowExW(
-                0,L"BUTTON",L"60 FPS",
-                WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
-                818,10,88,26,window,(HMENU)(INT_PTR)ID_FPS60,g_instance,NULL);
             /* The ROM path remains internal. Status is exposed as native
                static text, not as an editable toolbar field. */
             g_rom_path = CreateWindowExW(
@@ -3373,7 +3314,6 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             set_control_font(g_fullscreen_checkbox);
             set_control_font(g_auto_run_checkbox);
             set_control_font(g_widescreen_checkbox);
-            set_control_font(g_fps60_checkbox);
             set_control_font(g_rom_path);
             set_control_font(g_status);
             SendMessageW(g_fullscreen_checkbox, BM_SETCHECK, BST_UNCHECKED, 0);
@@ -3387,7 +3327,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
 
         case WM_GETMINMAXINFO: {
             MINMAXINFO *info = (MINMAXINFO *)lparam;
-            info->ptMinTrackSize.x = 944;
+            info->ptMinTrackSize.x = 850;
             info->ptMinTrackSize.y = 580;
             return 0;
         }
@@ -3431,22 +3371,6 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                         &g_frontend_settings, g_settings_ini_path);
                     update_controls();
                     return 0;
-                case ID_FPS60: {
-                    int enabled;
-                    if(InterlockedCompareExchange(&g_loading,0,0)!=0) {
-                        update_controls();return 0;
-                    }
-                    enabled=(HWND)lparam==g_fps60_checkbox?
-                        SendMessageW(g_fps60_checkbox,BM_GETCHECK,0,0)==BST_CHECKED:
-                        !g_frontend_settings.exact_60_fps;
-                    g_frontend_settings.exact_60_fps=enabled;
-                    if(enabled)g_frontend_settings.ntsc_frame_lock=1;
-                    reset_pacing_clock();
-                    if(!jungle_frontend_settings_win32_save(&g_frontend_settings,g_settings_ini_path))
-                        set_status(L"60 FPS changed, but the setting could not be saved.");
-                    if(enabled)show_fps60_notice_once();
-                    update_controls();return 0;
-                }
                 case ID_WIDESCREEN: {
                     char error[256];int enabled;
                     if(InterlockedCompareExchange(&g_loading,0,0)!=0)return 0;
@@ -3493,7 +3417,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                         static const wchar_t about[] =
                             L"F1 - Open the Welcome window\r\n\r\n"
                             L"Jungle Strike (SNES) Static Recompilation\r\n"
-                            L"Version 1.2.0\r\n\r\n"
+                            L"Version 1.1.0\r\n\r\n"
                             L"Title: Jungle Strike\r\n"
                             L"Region: USA/Canada NTSC\r\n"
                             L"File type: .sfc";
@@ -3699,8 +3623,14 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previous,
     (void)show_command;
     if (!QueryPerformanceFrequency(&g_qpc_frequency) ||
         g_qpc_frequency.QuadPart <= 0) return 1;
-    (void)jungle_frame_clock_init(&g_frame_clock,
-        (uint64_t)g_qpc_frequency.QuadPart, 0u, 0);
+    {
+        uint64_t scaled_qpc = (uint64_t)g_qpc_frequency.QuadPart *
+            JUNGLE_RECOMP_PRESENTATION_FPS_DENOMINATOR;
+        g_qpc_ticks_per_frame_base = scaled_qpc /
+            JUNGLE_RECOMP_PRESENTATION_FPS_NUMERATOR;
+        g_qpc_ticks_per_frame_remainder = (uint32_t)(scaled_qpc %
+            JUNGLE_RECOMP_PRESENTATION_FPS_NUMERATOR);
+    }
     g_frame_timer = CreateWaitableTimerExW(
         NULL, NULL, HOST_TIMER_HIGH_RESOLUTION, HOST_TIMER_ACCESS);
     if (!g_frame_timer)

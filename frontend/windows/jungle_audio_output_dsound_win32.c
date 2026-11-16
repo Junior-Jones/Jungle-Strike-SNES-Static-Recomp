@@ -365,21 +365,6 @@ void jungle_audio_output_initialize(JungleStrikeAudioOutput *output) {
     if (output) memset(output, 0, sizeof(*output));
 }
 
-static double source_rate_hz(const JungleStrikeAudioOutput *output) {
-    return output->source_rate_hz > 0.0 ? output->source_rate_hz :
-        (double)JUNGLE_RECOMP_AUDIO_SAMPLE_RATE;
-}
-
-void jungle_audio_output_set_source_rate(JungleStrikeAudioOutput *output, double rate) {
-    if (!output) return;
-    if (!isfinite(rate) || rate < 16000.0 || rate > 64000.0)
-        rate = (double)JUNGLE_RECOMP_AUDIO_SAMPLE_RATE;
-    output->source_rate_hz = rate;
-    if (output->device_sample_rate > 0)
-        jungle_audio_resampler_set_rates(&output->resampler, rate,
-            output->device_sample_rate * (output->playback_ratio > 0.0 ? output->playback_ratio : 1.0));
-}
-
 int jungle_audio_output_open(JungleStrikeAudioOutput *output,
                              const JungleStrikeAudioSettings *settings,
                              HWND owner, wchar_t *error,
@@ -503,7 +488,7 @@ int jungle_audio_output_open(JungleStrikeAudioOutput *output,
         goto fail;
     }
     jungle_audio_resampler_set_rates(&output->resampler,
-        source_rate_hz(output),
+        (double)JUNGLE_RECOMP_AUDIO_SAMPLE_RATE,
         (double)output->device_sample_rate);
     jungle_audio_resampler_set_mode(&output->resampler,
                                     settings->resampler_mode);
@@ -589,7 +574,7 @@ static void reset_rate_control(JungleStrikeAudioOutput *output) {
     output->playback_ratio = 1.0;
     output->diagnostics.playback_ratio = 1.0f;
     jungle_audio_resampler_set_rates(&output->resampler,
-        source_rate_hz(output),
+        (double)JUNGLE_RECOMP_AUDIO_SAMPLE_RATE,
         (double)output->device_sample_rate);
     jungle_audio_resampler_reset(&output->resampler);
 }
@@ -695,7 +680,7 @@ static void process_end_of_frame(JungleStrikeAudioOutput *output) {
         output->under_target = 0;
         output->playback_ratio = 1.0;
         jungle_audio_resampler_set_rates(&output->resampler,
-            source_rate_hz(output),
+            (double)JUNGLE_RECOMP_AUDIO_SAMPLE_RATE,
             (double)output->device_sample_rate);
         output->diagnostics.playback_ratio = 1.0f;
     }
@@ -729,7 +714,7 @@ static void process_end_of_frame(JungleStrikeAudioOutput *output) {
     if (output->drift_correction_enabled) {
         output->playback_ratio = requested;
         jungle_audio_resampler_set_rates(&output->resampler,
-            source_rate_hz(output),
+            (double)JUNGLE_RECOMP_AUDIO_SAMPLE_RATE,
             (double)output->device_sample_rate * requested);
         output->diagnostics.playback_ratio = (float)requested;
     }

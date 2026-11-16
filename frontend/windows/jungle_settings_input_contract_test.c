@@ -51,8 +51,6 @@ int main(void)
     CHECK(settings.widescreen_notice_shown == 0);
     CHECK(settings.show_fps_counter == 0);
     CHECK(settings.ntsc_frame_lock == 1);
-    CHECK(settings.exact_60_fps == 0);
-    CHECK(settings.fps60_notice_shown == 0);
     for (index = 0; index < JUNGLE_WIN_BINDING_COUNT; ++index) {
         CHECK(settings.bindings[index] == accessible_keys[index]);
         CHECK(settings.gamepad_bindings[index] == gamepad[index]);
@@ -65,7 +63,6 @@ int main(void)
     memset(&loaded, 0xff, sizeof(loaded));
     jungle_frontend_settings_win32_load(&loaded, path);
     CHECK(loaded.welcome_shown == 0);
-    CHECK(loaded.exact_60_fps == 0 && loaded.fps60_notice_shown == 0);
 
     settings.input_source = JUNGLE_INPUT_SOURCE_GAMEPAD;
     settings.integer_scale = 3;
@@ -75,7 +72,6 @@ int main(void)
     settings.welcome_shown = 1;
     settings.show_fps_counter = 1;
     settings.ntsc_frame_lock = 0;
-    settings.exact_60_fps = 0;
     settings.widescreen = 1;
     settings.widescreen_notice_shown = 1;
     settings.snapshot_slot = 4;
@@ -91,17 +87,9 @@ int main(void)
     CHECK(loaded.welcome_shown == 1);
     CHECK(loaded.show_fps_counter == 1);
     CHECK(loaded.ntsc_frame_lock == 0);
-    CHECK(loaded.exact_60_fps == 0);
     CHECK(loaded.widescreen == 1);
     CHECK(loaded.widescreen_notice_shown == 1);
     CHECK(loaded.snapshot_slot == 4);
-    settings.ntsc_frame_lock = 1;
-    settings.exact_60_fps = 1;
-    settings.fps60_notice_shown = 1;
-    CHECK(jungle_frontend_settings_win32_save(&settings, path));
-    jungle_frontend_settings_win32_load(&loaded, path);
-    CHECK(loaded.ntsc_frame_lock == 1 && loaded.exact_60_fps == 1);
-    CHECK(loaded.fps60_notice_shown == 1);
     for (index = 0; index < JUNGLE_WIN_BINDING_COUNT; ++index) {
         CHECK(loaded.bindings[index] == accessible_keys[index]);
         CHECK(loaded.gamepad_bindings[index] == gamepad[index]);
