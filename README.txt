@@ -1,5 +1,5 @@
 Jungle Strike (SNES) Static Recompilation - Source
-Version 1.1.0
+Version 1.2.0
 
 This package contains the Jungle Strike-specific static core and its native
 Windows Launcher frontend. The original game ROM is not included.
@@ -19,13 +19,55 @@ captures a screenshot. Accepted settings and controller bindings are written
 to settings.ini beside Launcher.exe whenever Apply is used and again on exit.
 The file is created automatically; it is not shipped in the release archive.
 
+60 FPS
+------
+
+60 FPS is experimental and disabled by default. Tick the 60 FPS toolbar
+checkbox or choose Settings > 60 FPS in the menu bar. The two controls stay
+synchronized and save the same setting. Enabling it applies to gameplay,
+title/options menus, pause and Map/Mission/Status in normal and Widescreen.
+Original NTSC (60.0988 FPS) remains the default. The existing Settings frame
+lock can be unticked for unlocked benchmarks, which also disables 60 FPS.
+
+The first enable from either control opens a small window titled Notice:
+This is an experimental 60FPS, any issues you find please give feedback
+Use its bottom Close button to dismiss it. General/Exact60FPSNoticeShown in
+settings.ini remembers that it has appeared, independently of the Widescreen
+notice. It will not appear again after restarting the application.
+
+Exact 60 FPS presents one original game field per 1/60 second. Compared with
+NTSC's 39,375,000 / 655,171 fields per second, playback is 0.1644% slower in
+wall time. Guest CPU, NMI, DMA and sound-generation clocks are unchanged;
+speaker resampling accounts for the slightly lower production rate. Original
+NTSC retains the original field rate and native speaker source rate.
+
+Rendering now reuses decoded tile rows within each scanline and expands
+bitplanes with a lookup table. Release builds use cross-module optimization
+when supported by MSVC. During active playback Windows is asked to honour
+time-critical execution and timer requests; pausing restores automatic power
+management. No global CPU overclock or extra physics updates are used.
+
+The original aircraft and active projectile integration already run at the
+field rate. Fuel consumption, weapon cooldowns and sprite animation retain
+their intended game-field timing. Static screens need not change every frame:
+the original Map loop redraws roughly every two fields, and the sampled
+Mission data page completes its graphics work roughly every nine fields.
+Input sampling and display continue each field. These original UI workloads
+have not been accelerated or replaced with invented intermediate images.
+
+The frame lock requires a PC that can finish rendering within its budget.
+Headless timing checks exercise the production timer, core, DirectSound and
+GDI paint path; they do not establish physical monitor scanout or a guarantee
+against operating-system stalls. The frame-rate choice is stored in
+General/Exact60FPS and General/NtscFrameLock in settings.ini.
+
 Widescreen
 ----------
 
 The Widescreen toolbar checkbox and Settings > Widescreen menu item switch
 live gameplay to 512 x 288 (16:9): 128 extra world pixels on the left/right and 32
-above/below. The setting is saved beside Launcher.exe. No other frontend
-controls are added. Screenshot export and scaling use both actual dimensions.
+above/below. The setting is saved beside Launcher.exe. Screenshot export and
+scaling use both actual dimensions.
 The first click on either Widescreen control shows a small experimental-feature
 Notice. Its one-time flag is saved in settings.ini beside Launcher.exe.
 
@@ -221,7 +263,7 @@ Frontend and release behavior
 -----------------------------
 
 See VERSION.txt for launcher controls, five snapshot slots, settings,
-full-screen screenshot behavior, NTSC frame lock, FPS display, gamepad
+full-screen screenshot behavior, frame-rate selection, FPS display, gamepad
 support, DirectSound output, live audio diagnostics and failure-log behavior.
 
 Package contents

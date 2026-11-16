@@ -150,8 +150,26 @@ void js_machine_v10_40_destroy(js_machine_v10_40 *machine) {
     js_apu_v10_33_destroy(&machine->apu);
 }
 
+static void js_snapshot_key_padding(js_static_context_key *key) {
+    /* Returned context values may carry unspecified ABI padding under LTO.
+       Clear only gaps, keeping every diagnostic member and snapshot layout. */
+    unsigned char *bytes=(unsigned char *)key;
+    memset(bytes+offsetof(js_static_context_key,pbr)+sizeof(key->pbr),0,
+        offsetof(js_static_context_key,pc)-offsetof(js_static_context_key,pbr)-sizeof(key->pbr));
+    memset(bytes+offsetof(js_static_context_key,x)+sizeof(key->x),0,
+        sizeof(*key)-offsetof(js_static_context_key,x)-sizeof(key->x));
+}
+
 void js_machine_v10_40_snapshot_sanitize(js_machine_v10_40 *machine) {
+    size_t i;
     if (!machine) return;
+    js_snapshot_key_padding(&machine->cpu_core.diagnostic_current_key);
+    js_snapshot_key_padding(&machine->cpu_core.diagnostic_failure_source);
+    js_snapshot_key_padding(&machine->cpu_core.diagnostic_failure_target);
+    for(i=0;i<JS_V05C_DIAGNOSTIC_EXPECTED_CAPACITY;i++)
+        js_snapshot_key_padding(&machine->cpu_core.diagnostic_expected[i]);
+    for(i=0;i<JS_V05C_DIAGNOSTIC_TRACE_CAPACITY;i++)
+        js_snapshot_key_padding(&machine->cpu_core.diagnostic_trace[i]);
     memset(&machine->scheduler.hooks, 0, sizeof(machine->scheduler.hooks));
     machine->bus.base.rom = NULL;
     memset(&machine->bus.base.ports, 0, sizeof(machine->bus.base.ports));
