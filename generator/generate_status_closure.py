@@ -23,6 +23,7 @@ def main():
     producers={0xA011:bytes.fromhex('A952848D200D850B'),0xA0AC:bytes.fromhex('A952848D200D850B'),0x84C7:bytes.fromhex('A9CF84850B'),0x9FFD:bytes.fromhex('A987838D200D850B'),0xA0EB:bytes.fromhex('A987838D200D850B'),0x83F3:bytes.fromhex('A9FB83850B')}
     for pc,data in producers.items():assert rom[0x100000+pc-0x8000:0x100000+pc-0x8000+len(data)]==data
     assert rom[0x53fa:0x53fd]==bytes.fromhex('2032BB')
+    assert rom[0x3b32:0x3b3d]==bytes.fromhex('DABD4500291F00AA7C3DBB')
     assert rom[0x3b3d:0x3b41]==bytes.fromhex('61BB82BC')
     assert rom[0x3d00:0x3d02]==bytes.fromhex('7A60')
     cf.ROOTS=(("status_console",0xA0,0x8452,"ROM-STATUS-CONSOLE"),("status_poll",0xA0,0x84CF,"ROM-STATUS-STATE-A084C7"),("mission_console",0xA0,0x8387,"ROM-MISSION-CONSOLE"),("mission_poll",0xA0,0x83FB,"ROM-MISSION-STATE-A083F3"),("damage_return",0x80,0xD3FD,"ROM-JSR-80D3FA-BB32"),("collision_return",0x80,0xD47B,"ROM-JSR-80D478-BB32"))
@@ -86,6 +87,25 @@ def main():
     edges=sorted(set(edges)|{('80:DB11:E0M0X0',f'80:{pc+3:04X}:E0M0X0') for pc in callers})
     edges=sorted(set(edges)|{(source,f'80:{pc+3:04X}:E0M0X0') for source in entity_returns for pc in bb32_calls})
     edges=sorted(set(edges)|{('80:D484:E0M0X0',f'80:{pc+3:04X}:E0M0X0') for pc in ca82_calls})
+    # A full destruction queue returns before BB32. D3D8 has already
+    # discarded the local D381 JSR, so D3F9 consumes the same literal outer
+    # CA82 tail-dispatch frame as D484. Keep its finite caller domain.
+    assert rom[0x53D8]==0x68
+    assert rom[0x53EE:0x53FA]==bytes.fromhex('209BDAF007A901009D6A0060')
+    edges=sorted(set(edges)|{('80:D3F9:E0M0X0',f'80:{pc+3:04X}:E0M0X0') for pc in ca82_calls})
+    # Passenger delivery literally calls the existing inventory-removal helper.
+    # Both native RTS exits preserve E0/M16/X16 and return to the byte after JSR.
+    assert rom[0x1664:0x1667] == bytes.fromhex('202597')
+    assert rom[0x1784:0x178A] == bytes.fromhex('FA3860FA1860')
+    edges=sorted(set(edges)|{('80:9786:E0M0X0','80:9667:E0M0X0'),
+                             ('80:9789:E0M0X0','80:9667:E0M0X0')})
+    # Exhausted-lives early exit of the literal player-state tail dispatcher.
+    assert rom[0x0300:0x0303] == bytes.fromhex('202995')
+    assert rom[0x1529:0x1531] == bytes.fromhex('F47F80A6767C3195')
+    assert rom[0x1AE1:0x1AE5] == bytes.fromhex('AE4808AB')
+    assert rom[0x1AF3:0x1B01] == bytes.fromhex('AFB208003A8FB20800D0034C799B')
+    assert rom[0x1B79:0x1B7B] == bytes.fromhex('AB60')
+    edges=sorted(set(edges)|{('80:9B7A:E0M0X0','80:8303:E0M0X0')})
     lines=['/* Offline immutable-ROM Status-screen closure; no runtime decoding. */','#include "static_core_compact_generated.h"']
     for h in ['cpu_v08c_internal','cpu_v10_3_internal','cpu_v10_27_internal','cpu_v10_36_internal','cpu_v10_45_internal','cpu_dispatch_v10_100','status_v10_11','status_closure']:
         lines.append(f'#include "jungle/{h}.h"')
@@ -101,14 +121,20 @@ def main():
     lines.extend(f'if(f=={lit(a)}&&t=={lit(b)})return 1;' for a,b in edges)
     lines.extend(['return 0;}'])
     lines.extend(['int jungle_damage_dispatch_allowed(js_static_context_key from,js_static_context_key to) {',
-                  f'if(js_v05c_pack_key(from)!={lit("80:DAD7:E0M0X0")})return 0;',
-                  'switch(js_v05c_pack_key(to)){'])
+                  'switch(js_v05c_pack_key(from)){',
+                  f'case {lit("80:BB3A:E0M0X0")}:switch(js_v05c_pack_key(to)){{'])
+    lines.extend(f'case {lit(f"80:{pc:04X}:E0M0X0")}:return 1;' for pc in sorted(set(entity_targets)))
+    lines.extend(['default:return 0;}',f'case {lit("80:DAD7:E0M0X0")}:switch(js_v05c_pack_key(to)){{'])
     lines.extend(f'case {lit(f"80:{pc:04X}:E0M0X0")}:return 1;' for pc in sorted(set(damage_targets)))
-    lines.extend(['default:return 0;}}'])
+    lines.extend(['default:return 0;}','default:return 0;}}'])
     code=('\n'.join(lines)+'\n').encode()
     (src/'runtime/status_closure.c').write_bytes(code)
     proof={'rom_sha256':digest,'roots':['A0:8452:E0M0X0','A0:84CF:E0M0X0','A0:8387:E0M0X0','A0:83FB:E0M0X0','80:D3FD:E0M0X0','80:D47B:E0M0X0'],'damage_return_proof':{'call':'80:D3FA JSR BB32','table':'80:BB3D = BB61,BC82','return':'80:BD00 PLY; 80:BD01 RTS -> 80:D3FD'},'entity_return_proof':{'entry':'80:BB32','table':'80:BB3D-BB5C','targets':entity_targets,'root_returns':sorted(entity_returns),'compiled_JSR_BB32_callers':bb32_calls,'collision_loop_JSR_D410_callers':collision_calls,'outer_JSR_CA82_callers':ca82_calls,'collision_return':'80:D44D PLA discards local D410 call return; D484 returns through outer CA82 tail-dispatch frame'},'damage_dispatch_proof':{'source':'80:DAD7:E0M0X0','mask':15,'table':'80:DADA-DAF9','targets':damage_targets,'DAC4_callers':callers},'state_producers':{f'A0:{pc:04X}':data.hex().upper() for pc,data in producers.items()},'new_contexts':801,'new_unique_rom_bytes':1847,'production_contexts':28636,'production_rom_bytes':66177,'return_edges':edges,'rows':fresh,'analysis_summary':p['summary'],'frontiers':p['frontiers'],'runtime_decoding':False,'native_source_sha256':hashlib.sha256(code).hexdigest()}
-    (src/'generator/status_closure_proof.json').write_text(json.dumps(proof,indent=2)+'\n')
+    proof['entity_dispatch_proof']={'source':'80:BB3A:E0M0X0','producer_rom_bytes':'DABD4500291F00AA7C3DBB','table':'80:BB3D-BB5C','targets':entity_targets,'index_mask':31,'runtime_decoding':False}
+    proof['full_collision_queue_return_proof']={'native_exit':'80:D3F9 RTS after D3D8 PLA discarded D381 local return','outer_calls':'literal JSR CA82 caller list in entity_return_proof','observed_caller':'80:87BE JSR CA82 ->80:87C1','queue_path_rom':'209BDAF007A901009D6A0060','synthetic_stress_origin':'genuine pending fuel pickup collision underflow; only queue occupancy altered for isolated test','runtime_decoding':False}
+    proof['exhausted_lives_return_proof']={'call':'80:8300 JSR 9529','dispatch':'80:9529 PEA 807F; LDX $76; JMP ($9531,X)','native_exit':'80:9AF3 DEC lives -> 9AFE JMP 9B79; PLB; RTS 9B7A','continuation':'80:8303:E0M0X0','call_rom_bytes':'202995','exit_rom_bytes':'AB60','stack_return_word':'8302','runtime_decoding':False}
+    proof['passenger_return_proof']={'call':'80:9664 JSR 9725','continuation':'80:9667:E0M0X0','helper_returns':['80:9786:E0M0X0','80:9789:E0M0X0'],'call_rom_bytes':'202597','exit_rom_bytes':'FA3860FA1860','runtime_decoding':False}
+    (src/'generator/status_closure_proof.json').write_bytes((json.dumps(proof,indent=2)+'\n').encode())
     print(f'PASS: 801 native contexts, 1847 new ROM code bytes, {len(edges)} frozen return edges')
 
 if __name__=='__main__':main()

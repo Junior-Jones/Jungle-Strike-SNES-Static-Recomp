@@ -12,6 +12,9 @@ extern "C" {
 /* Version 09C preserves the certified Version 06C mapping/base-machine state
    verbatim and places it on the Version 09C PPU-aware scheduler timeline. */
 struct js_scheduler_v09c;
+/* Transient software graphics budget, cleared after each qualified instruction. */
+#define JS_V09C_GRAPHICS_BUDGET 0x80u
+#define JS_V09C_CPU_CLOCK_MASK 0x7fu
 typedef js_bus_region_v06c js_bus_region_v09c;
 typedef js_bus_mapping_v06c js_bus_mapping_v09c;
 typedef js_component_port_v06c js_component_port_v09c;

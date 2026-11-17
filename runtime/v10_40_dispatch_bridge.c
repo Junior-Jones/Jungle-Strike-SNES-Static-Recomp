@@ -1,15 +1,21 @@
 #include "jungle/cpu_dispatch_v10_100.h"
 #include "jungle/cpu_v08c_internal.h"
 #include "jungle/status_closure.h"
+#include "jungle/vehicle_closure.h"
+#include "jungle/end_closure.h"
 int js_compact_base_context_known(js_static_context_key key);
 js_stop_reason js_compact_base_dispatch(js_machine_v05c *m,
                                         js_static_context_key key);
 int js_v10_100_scpu_context_known(js_static_context_key key) {
-  return jungle_status_context_known(key) || js_compact_base_context_known(key);
+  return jungle_end_context_known(key) || jungle_vehicle_context_known(key) || jungle_status_context_known(key) || js_compact_base_context_known(key);
 }
 js_stop_reason js_static_dispatch_v10_100(js_machine_v05c *m,
                                           js_static_context_key key) {
   js_stop_reason out;
+  if (jungle_end_dispatch(m, key, &out))
+    return out;
+  if (jungle_vehicle_dispatch(m, key, &out))
+    return out;
   if (jungle_status_dispatch(m, key, &out))
     return out;
   return js_compact_base_dispatch(m, key);

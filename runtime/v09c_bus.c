@@ -98,6 +98,10 @@ js_bus_mapping_v09c js_bus_v09c_map(const js_bus_v09c *bus, uint32_t address) {
 }
 
 unsigned js_bus_v09c_access_clocks(const js_bus_v09c *bus, uint32_t address) {
+    if(bus&&(bus->cpu_speed_clocks&JS_V09C_GRAPHICS_BUDGET)){
+        js_bus_mapping_v09c map=js_bus_v09c_map(bus,address);
+        if(map.region==JS_BUS_REGION_ROM||map.region==JS_BUS_REGION_WRAM)return 4u;
+    }
     return bus ? js_bus_v06c_access_clocks(&bus->base, address) : 8u;
 }
 
@@ -114,7 +118,10 @@ js_stop_reason js_bus_v09c_read8(js_bus_v09c *bus, uint32_t address, uint8_t *va
     unsigned clocks;
     if (!bus || !value) return JS_STOP_BUS_FAULT;
     clocks = js_bus_v09c_access_clocks(bus, address);
-    bus->cpu_speed_clocks = (uint8_t)clocks;
+    /* DMA alignment uses the original hardware access period. The software
+       budget changes only this CPU work's elapsed clocks, not DMA's clock. */
+    bus->cpu_speed_clocks = (uint8_t)(js_bus_v06c_access_clocks(&bus->base,address)|
+                                    (bus->cpu_speed_clocks&JS_V09C_GRAPHICS_BUDGET));
     r = js_v09c_begin_cpu_cycle(bus);
     if (r != JS_STOP_NONE) return r;
     r = js_v09c_advance_cpu(bus, clocks - 4u);
@@ -158,7 +165,8 @@ js_stop_reason js_bus_v09c_write8(js_bus_v09c *bus, uint32_t address, uint8_t va
     js_bus_mapping_v09c map;
     if (!bus) return JS_STOP_BUS_FAULT;
     clocks = js_bus_v09c_access_clocks(bus, address);
-    bus->cpu_speed_clocks = (uint8_t)clocks;
+    bus->cpu_speed_clocks = (uint8_t)(js_bus_v06c_access_clocks(&bus->base,address)|
+                                    (bus->cpu_speed_clocks&JS_V09C_GRAPHICS_BUDGET));
     r = js_v09c_begin_cpu_cycle(bus);
     if (r != JS_STOP_NONE) return r;
     r = js_v09c_advance_cpu(bus, clocks);
@@ -175,7 +183,7 @@ js_stop_reason js_bus_v09c_idle_cycles(js_bus_v09c *bus, unsigned cycles) {
     while (cycles-- != 0u) {
         js_stop_reason r = js_v09c_begin_cpu_cycle(bus);
         if (r != JS_STOP_NONE) return r;
-        r = js_v09c_advance_cpu(bus, 6u);
+        r = js_v09c_advance_cpu(bus, (bus->cpu_speed_clocks&JS_V09C_GRAPHICS_BUDGET)?4u:6u);
         if (r != JS_STOP_NONE) return r;
         bus->cpu_idle_cycles++;
     }

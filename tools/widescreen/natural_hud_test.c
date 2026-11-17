@@ -62,7 +62,7 @@ int main(int argc, char **argv) {
   free(rom);
   if (!c || !native)
     return 2;
-  size = jungle_core_snapshot_size(c);
+  size = guest_snapshot_size(c);
   initial = malloc(size);
   before = malloc(size);
   a = malloc(size);
@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
   for (frame = 0; frame < 60000; frame++) {
     uint16_t input = frame < 180 ? JUNGLE_BUTTON_UP : 0;
     int render = (frame % 16u) == 0u;
-    if (render && !jungle_core_save_snapshot(c, before, size))
+    if (render && !save_guest_snapshot(c, before, size))
       return 2;
     if (!(render ? jungle_core_run_frame(c, input, 0)
                  : jungle_core_run_frame_headless(c, input, 0))) {
@@ -120,8 +120,8 @@ int main(int argc, char **argv) {
       if (!write_frame(c, path))
         return 2;
       if (!compare_frame(native, c) ||
-          !jungle_core_save_snapshot(native, a, size) ||
-          !jungle_core_save_snapshot(c, b, size) || memcmp(a, b, size))
+          !save_guest_snapshot(native, a, size) ||
+          !save_guest_snapshot(c, b, size) || memcmp(a, b, size))
         return 1;
       snprintf(path, sizeof(path), "%s/real-hud.snapshot", argv[3]);
       f = fopen(path, "wb");
@@ -147,8 +147,8 @@ int main(int argc, char **argv) {
             warning_frames++;
           }
           if (follow % 16u == 0u &&
-              (!jungle_core_save_snapshot(native, a, size) ||
-               !jungle_core_save_snapshot(c, b, size) || memcmp(a, b, size)))
+              (!save_guest_snapshot(native, a, size) ||
+               !save_guest_snapshot(c, b, size) || memcmp(a, b, size)))
             return 1;
         }
         if (!warning_frames)

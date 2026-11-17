@@ -452,6 +452,18 @@ int jungle_recomp_widescreen_enabled(const JungleStrikeRecomp *instance) {
     return instance?jungle_core_widescreen_enabled(instance->core):0;
 }
 
+int jungle_recomp_experimental_60fps_enabled(const JungleStrikeRecomp *instance) {
+    return instance?jungle_core_experimental_60fps_enabled(instance->core):0;
+}
+int jungle_recomp_set_experimental_60fps(JungleStrikeRecomp *instance,int enabled,
+                                         char *error,size_t error_capacity) {
+    if(!instance||!jungle_core_set_experimental_60fps(instance->core,enabled)){
+        set_error(error,error_capacity,"A pending graphics transfer must finish before changing 60 FPS.");
+        return 0;
+    }
+    return 1;
+}
+
 int jungle_recomp_set_widescreen(JungleStrikeRecomp *instance, int enabled,
                                  char *error, size_t error_capacity) {
     if(!instance||!jungle_core_set_widescreen(instance->core,enabled)){
@@ -569,12 +581,14 @@ int jungle_recomp_snapshot_load(JungleStrikeRecomp *instance,
         goto cleanup;
     }
     if (fseek(file, 0, SEEK_END) != 0 ||
-        (file_size = ftell(file)) < 0 || (size_t)file_size != expected ||
+        (file_size = ftell(file)) < 0 ||
+        !jungle_core_snapshot_size_supported(instance->core,(size_t)file_size) ||
         fseek(file, 0, SEEK_SET) != 0) {
         set_error(error, error_capacity,
                   "The snapshot is invalid or belongs to another build.");
         goto cleanup;
     }
+    expected=(size_t)file_size;
     buffer = malloc(expected);
     if (!buffer) {
         set_error(error, error_capacity,
@@ -648,6 +662,15 @@ void jungle_recomp_sram_mark_clean(JungleStrikeRecomp *instance) {
     (void)instance;
 }
 
+int jungle_recomp_capture_sample(const JungleStrikeRecomp *instance,JungleCoreCaptureSample *out){
+    return instance&&jungle_core_capture_sample(instance->core,out);
+}
+size_t jungle_recomp_diagnostic_json_size(const JungleStrikeRecomp *instance){
+    return instance?jungle_core_diagnostic_snapshot_size(instance->core):0u;
+}
+int jungle_recomp_diagnostic_json(const JungleStrikeRecomp *instance,void *dst,size_t size){
+    return instance&&jungle_core_save_diagnostic_snapshot(instance->core,dst,size);
+}
 int jungle_recomp_write_diagnostic_log(
     const JungleStrikeRecomp *instance, const char *path,
     const char *screenshot_path, char *error, size_t error_capacity) {
@@ -671,8 +694,8 @@ int jungle_recomp_write_diagnostic_log(
         free(buffer);
         return unsupported(error, error_capacity);
     }
-    file = fopen(path, "wb");
-    if (!file || fwrite(buffer, 1u, size, file) != size) {
+    file = open_utf8_file(path, "wb");
+    if (!file || fwrite(buffer, 1u, strlen((const char *)buffer), file) != strlen((const char *)buffer)) {
         if (file) fclose(file);
         free(buffer);
         set_error(error, error_capacity, "Unable to write the diagnostic log.");

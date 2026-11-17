@@ -1,5 +1,5 @@
 Jungle Strike (SNES) Static Recompilation - Source
-Version 1.1.0
+Version 1.2.0
 
 This package contains the Jungle Strike-specific static core and its native
 Windows Launcher frontend. The original game ROM is not included.
@@ -19,20 +19,115 @@ captures a screenshot. Accepted settings and controller bindings are written
 to settings.ini beside Launcher.exe whenever Apply is used and again on exit.
 The file is created automatically; it is not shipped in the release archive.
 
+Experimental 60 FPS - normal and widescreen
+-------------------------------------------
+
+Select 60 FPS using the toolbar checkbox or Settings > 60 FPS before loading
+the ROM. Both controls share one saved setting and are disabled while a ROM
+is loaded. The one-time experimental Notice is remembered in settings.ini.
+The same conversion runs in normal 4:3 and 16:9 Widescreen, in a window or
+full screen. Changing display size does not change simulation speed.
+
+Changes made for this mode:
+
+- Projectile contact checks previously sampled on alternate fields now run
+  on every eligible field. Static-object contact checks previously sampled
+  one field in four also run every eligible field. Target ordering, projectile
+  consumption and damage per hit remain native. More frequent checks can catch
+  a hit that originally passed between checks, so outcomes can differ.
+- A redundant wait after a completed gameplay publication was removed only
+  when the native ready bit had already cleared. Movement is not run twice.
+- Busy combat now gives verified pure contact-geometry and classification
+  work a smaller software instruction budget. A building-destruction case
+  that previously missed publication deadlines now publishes each field in
+  both display modes. Damage, spawning, timers and hardware waits retain
+  their native owners; this does not increase weapon firing rates.
+- Select presses are accepted every field instead of only one phase in four.
+  Original resource capture, panel entry, fades and return still run.
+- Map processing increased from about 30 to 60 updates per second. Pure marker,
+  text and OAM-buffer construction was given a smaller instruction budget so
+  the next upload reaches its native blanking deadline. Marker animation
+  counters and persistent marker records retain their original timing.
+- Mission information processing now batches compatible graphics transfers
+  during native blanking, with ROM-checked decompression and tile conversion.
+  Aligned remaining tiles are handled after a busy-hardware fallback too.
+  Page clears and pure text/number construction avoid repeated blocked fields.
+  Authored diagram cycles retain their timing; required initial asset-loading
+  and hardware-transfer fields are retained.
+- Options, password editing and copilot selection process input/redraw work
+  each field. Password-error duration, portrait transfers and scripted holds
+  are preserved. The main menu already processed input at the native field
+  rate and was not accelerated.
+- Game Over graphics use coherent transfer batches while keeping the original
+  fire-animation and fade durations. Report return paths remain native.
+- Water colours gain intermediate RGB values each field rather than changing
+  only at the original eight-field palette steps. The complete colour cycle
+  retains its original duration. Light/fire palette effects also gain
+  intermediate updates without shortening their cycle.
+- Native and widescreen rendering use guarded row/tile/colour caches and
+  off-screen sprite rejection to reduce host work. Unknown-memory/error
+  behavior and final pixel selection are preserved.
+
+Original aircraft, NPC and projectile movement already integrated once per
+native NTSC field, about 60.10 times per second. Those movements were retained,
+not doubled. Fuel charging still uses its original 256-field clock (where the
+vehicle uses that clock); firing intervals, damage amounts and audio clocks
+are not multiplied. Both display modes share these rules.
+
+Additional fixes cover cartridge-proven alternate-vehicle, destruction-queue
+and report-return paths. Widescreen saves now retain sprite-wrap history,
+partial/completed images and latched water colours. Earlier V1/V2 saves still
+load; no runtime interpreter, learning or fallback was added.
+
+In-game controls and timing
+--------------------------
+
+SNES Select opens the Map/Mission/Status panel; Select closes it. SNES Start
+pauses and another Start press resumes. Your keyboard/gamepad bindings may
+map those buttons to different physical keys. Panel/pause checks confirm
+movement and fuel stay frozen there, then normal field-rate gameplay resumes
+once the game's original exit fade and restoration have completed.
+
+Screenshot diagnostics
+----------------------
+
+F8 or File > Screenshot saves an image and a matching .json report in the
+Screenshots folder beside Launcher.exe. Both files share the same name.
+There is no additional control or setting. Screenshots taken with an external
+Windows capture tool do not automatically receive this report.
+
+The report links the actual image dimensions and file hash to the version,
+display/60 FPS settings, completed display-frame number and current CPU frame,
+scanline and master clock. The distinction matters: the CPU can already be
+partway into the next raster while the image is the last completed display.
+It also records mission, raw screen/pause state, aircraft position/heading,
+camera, available armor/fuel/ammunition values, input, pending panel transfers,
+CPU/PPU/audio diagnostics and memory hashes. Raw RAM values include validity
+flags and are not guesses about the picture.
+
+An in-memory history retains the last 120 advanced frames, including inputs,
+positions/resources, measured host work time and pacing counters. It is written
+only when capturing; paused capture does not advance the game. The history
+clears on ROM replacement, reset and successful snapshot load. If logging
+fails after an image is saved, the launcher reports that the image exists but
+its diagnostic report failed. Older screenshots cannot gain past runtime logs
+retroactively. Keep each image and its matching report together for review.
+
 Widescreen
 ----------
 
 The Widescreen toolbar checkbox and Settings > Widescreen menu item switch
 live gameplay to 512 x 288 (16:9): 128 extra world pixels on the left/right and 32
 above/below. The setting is saved beside Launcher.exe. No other frontend
-controls are added. Screenshot export and scaling use both actual dimensions.
+widescreen controls are added. Screenshot export and scaling use both actual dimensions.
 The first click on either Widescreen control shows a small experimental-feature
 Notice. Its one-time flag is saved in settings.ini beside Launcher.exe.
 
 Terrain and scenery come from live camera state, cartridge map data and
 scenery records. Sprite coordinates are tracked across their horizontal and
 vertical wraps; unused ($E0,$E0) OAM entries are excluded from the expanded
-world. Original movement, weapons, collision, spawning and range remain intact.
+world. With 60 FPS disabled, original movement, weapons, collision, spawning and
+range remain intact. The optional 60 FPS contact changes are described above.
 At map edges, the expanded viewport shifts toward valid terrain while keeping
 the complete native world view. This avoids exposing unused map-border tiles.
 
@@ -47,7 +142,7 @@ Normal mode retains the original console and 4:3 presentation.
 Original snapshots remain compatible. Widescreen remains a host display
 choice when loading a snapshot or resetting. Paused snapshot loads and display
 toggles rebuild the widescreen presentation immediately without advancing the
-game or changing the snapshot format. Firing tests also exposed an
+game. New snapshots also retain exact widescreen history and palette state. Firing tests also exposed an
 omitted static return domain: the cartridge-proven entity-dispatcher returns
 through $80:D40F now accept their 30 frozen, compiled caller continuations.
 All other return contexts still fail closed; no runtime decoding or learning
@@ -210,12 +305,24 @@ gamepad contracts, audio resampling, audio settings and byte-identical snapshot
 continuation. The frontend-core test can also load an externally supplied
 same-build snapshot and advance it through the streamed-audio path.
 
-Historic password-route smoke checks do not establish complete gameplay or
-vehicle coverage. Current widescreen evidence includes mission 1 corner and
-weapon tests and mission 1/2 console-selection tests. Mission 2 corner testing
-and the remaining gameplay transitions are still in progress. Developer test
-programs are included in the source package; captured screenshots, replay
-states, personal settings and test logs are excluded from both release ZIPs.
+Bounded local 60 FPS checks cover all nine mission starts, four vehicles,
+movement and individual weapon inputs, contacts, resupply, death/respawn and
+normal/wide presentation. Repeated and partial-frame saves compare complete
+state, actual composed pixels and stereo PCM; older V1/V2 files still load.
+Map/Mission/Status, Options, Password and Copilot have separate timing and
+panel checks. Main-menu input already processes every native field. Authored
+animation holds and necessary hardware transfer deadlines retain their timing.
+These are focused conversion regressions, not a claim of campaign completion.
+Additional genuine gameplay checks cover building destruction, bike ramming,
+rescue/full cargo/drop-off, Quick Winch, armor and extra-life pickups, slow
+ground collection versus hard item destruction, F117 boarding/takeoff/return
+landing, hovering mines, bombs and destruction/recovery of all four vehicles.
+A native table census classifies all 33 actor behaviors and 18 enemy weapon
+definitions. Moving and stationary attackers also have actual projectile-birth
+to player-damage traces. Table coverage does not mean every enemy encounter
+has been played; deliberate firing intervals and movement steps are retained.
+Developer test programs are included in the source package; captured images,
+replay states, personal settings and test logs are excluded from both ZIPs.
 
 Frontend and release behavior
 -----------------------------

@@ -1,6 +1,27 @@
 /* Headless integration evidence: uses the production core, with private access
    only to record OAM/camera coverage. Never linked into Launcher.exe. */
 #include "../../runtime/v10_40_core_api.c"
+/* These legacy display-only tools compare guest execution across different
+   host display settings, so they deliberately project to the V1 guest payload.
+   Production V3 snapshots also contain host raster/history and differ in size.
+   Do not use this projection to test enhanced UI or complete V3 restoration. */
+static size_t guest_snapshot_size(const JungleStaticCore *c) {
+  if (!c || c->experimental_60fps || c->ui60.mission.count) return 0;
+  return sizeof(js_snapshot_header_v10_40) + JS_CORE_SNAPSHOT_BYTES +
+         js_smp_v10_2_snapshot_size();
+}
+static int save_guest_snapshot(const JungleStaticCore *c, void *dst, size_t size) {
+  JungleStaticCore *copy;
+  int result;
+  if (!size || size != guest_snapshot_size(c)) return 0;
+  copy = (JungleStaticCore *)malloc(sizeof(*copy));
+  if (!copy) return 0;
+  *copy = *c;
+  copy->wide = NULL;
+  result = jungle_core_save_snapshot(copy, dst, size);
+  free(copy);
+  return result;
+}
 static int write_frame(JungleStaticCore *c, const char *path) {
   JungleCoreFrame frame;
   unsigned x, y;
@@ -245,7 +266,7 @@ int main(int argc, char **argv) {
   free(rom);
   if (!native || !wide)
     return 2;
-  size = jungle_core_snapshot_size(native);
+  size = guest_snapshot_size(native);
   snapshot = malloc(size);
   a = malloc(size);
   b = malloc(size);
@@ -315,8 +336,8 @@ int main(int argc, char **argv) {
       if (!capture_edges(native, wide, argv[3], phase))
         return 2;
       if (index % 30u == 0u) {
-        jungle_core_save_snapshot(native, a, size);
-        jungle_core_save_snapshot(wide, b, size);
+        save_guest_snapshot(native, a, size);
+        save_guest_snapshot(wide, b, size);
         if (memcmp(a, b, size)) {
           printf("FAIL guest/snapshot changed frame=%u\n", frames);
           return 1;
@@ -427,8 +448,8 @@ int main(int argc, char **argv) {
         }
       }
     }
-    jungle_core_save_snapshot(native, a, size);
-    jungle_core_save_snapshot(wide, b, size);
+    save_guest_snapshot(native, a, size);
+    save_guest_snapshot(wide, b, size);
     if (memcmp(a, b, size))
       return 1;
     printf("PASS heading=%u fire=B+A+Y+X left_samples=%u right_samples=%u "
@@ -447,7 +468,7 @@ int main(int argc, char **argv) {
     return 1;
   }
   /* Toggle and snapshot restoration preserve the user's presentation choice. */
-  jungle_core_save_snapshot(wide, b, size);
+  save_guest_snapshot(wide, b, size);
   if (!jungle_core_load_snapshot(wide, b, size) ||
       !jungle_core_widescreen_enabled(wide))
     return 1;

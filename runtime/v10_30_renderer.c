@@ -1,5 +1,6 @@
 #include <string.h>
 #include "jungle/renderer_v10_30.h"
+#include "jungle/gameplay_water_60.h"
 
 static int js_v10_30_inside_window(uint16_t x, uint8_t left, uint8_t right) {
     return left <= right && x >= left && x <= right;
@@ -186,14 +187,14 @@ static void js_v10_30_plane_backdrop(js_screen_plane_pixel_v10_30 *p,uint16_t c)
 static void js_v10_30_consider_bg(js_screen_plane_pixel_v10_30 *dst,const js_bg_pixel_v10_29 *bg) {
     if (bg->transparent) return;
     if (dst->source==JS_PIXEL_V10_30_BACKDROP || bg->priority_slot>dst->priority_slot) {
-        dst->source=(js_pixel_source_v10_30)bg->layer; dst->transparent=0u; dst->priority_slot=bg->priority_slot; dst->bgr555=bg->bgr555;
+        dst->source=(js_pixel_source_v10_30)bg->layer; dst->transparent=0u; dst->priority_slot=bg->priority_slot; dst->bgr555=bg->bgr555; dst->cgram_index=bg->cgram_index;
     }
 }
 static void js_v10_30_consider_obj(js_screen_plane_pixel_v10_30 *dst,const js_obj_pixel_v10_30 *obj) {
     if (obj->transparent) return;
     if (dst->source==JS_PIXEL_V10_30_BACKDROP || obj->priority_slot>dst->priority_slot) {
         dst->source=JS_PIXEL_V10_30_OBJ; dst->transparent=0u; dst->priority_slot=obj->priority_slot;
-        dst->obj_palette=obj->palette; dst->bgr555=obj->bgr555;
+        dst->obj_palette=obj->palette; dst->bgr555=obj->bgr555; dst->cgram_index=obj->cgram_index;
     }
 }
 static int js_v10_30_math_enabled(const js_ppu_v09c *ppu,const js_screen_plane_pixel_v10_30 *p) {
@@ -206,6 +207,7 @@ static int js_v10_30_math_enabled(const js_ppu_v09c *ppu,const js_screen_plane_p
 static js_stop_reason js_v10_30_render_source_pixel_prepared(
     js_ppu_v09c *ppu, uint16_t x, uint16_t y, uint16_t backdrop,
     const js_obj_scanline_v10_30 *prepared_obj_line,
+    js_bg_scanline_cache_v10_29 *bg_cache,
     js_screen_pixel_v10_30 *pixel) {
     js_stop_reason stop; js_bg_pixel_v10_29 bg; js_obj_pixel_v10_30 obj;
     if (!ppu || !pixel || x>=JS_V10_30_VISIBLE_WIDTH || y>=JS_V10_30_VISIBLE_HEIGHT)
@@ -213,15 +215,16 @@ static js_stop_reason js_v10_30_render_source_pixel_prepared(
     memset(pixel,0,sizeof(*pixel)); pixel->brightness=ppu->brightness;
     if (ppu->forced_blank) { pixel->forced_blank=1u; pixel->main_pixel.source=JS_PIXEL_V10_30_BACKDROP; pixel->sub_pixel.source=JS_PIXEL_V10_30_BACKDROP; return JS_STOP_NONE; }
     js_v10_30_plane_backdrop(&pixel->main_pixel,backdrop); js_v10_30_plane_backdrop(&pixel->sub_pixel,backdrop);
-    if ((ppu->main_screen_layers&0x01u) && !((ppu->window_mask_main&0x01u) && js_v10_30_window_masked(ppu,0u,x))) { stop=js_renderer_v10_29_sample_mode1_bg(ppu,0u,x,y,&bg); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_bg(&pixel->main_pixel,&bg); }
-    if ((ppu->main_screen_layers&0x02u) && !((ppu->window_mask_main&0x02u) && js_v10_30_window_masked(ppu,1u,x))) { stop=js_renderer_v10_29_sample_mode1_bg(ppu,1u,x,y,&bg); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_bg(&pixel->main_pixel,&bg); }
-    if ((ppu->main_screen_layers&0x04u) && !((ppu->window_mask_main&0x04u) && js_v10_30_window_masked(ppu,2u,x))) { stop=js_renderer_v10_29_sample_mode1_bg(ppu,2u,x,y,&bg); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_bg(&pixel->main_pixel,&bg); }
+    if ((ppu->main_screen_layers&0x01u) && !((ppu->window_mask_main&0x01u) && js_v10_30_window_masked(ppu,0u,x))) { stop=(bg_cache?js_renderer_v10_29_sample_mode1_bg_cached(ppu,0u,x,y,bg_cache+0u,&bg):js_renderer_v10_29_sample_mode1_bg(ppu,0u,x,y,&bg)); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_bg(&pixel->main_pixel,&bg); }
+    if ((ppu->main_screen_layers&0x02u) && !((ppu->window_mask_main&0x02u) && js_v10_30_window_masked(ppu,1u,x))) { stop=(bg_cache?js_renderer_v10_29_sample_mode1_bg_cached(ppu,1u,x,y,bg_cache+1u,&bg):js_renderer_v10_29_sample_mode1_bg(ppu,1u,x,y,&bg)); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_bg(&pixel->main_pixel,&bg); }
+    if ((ppu->main_screen_layers&0x04u) && !((ppu->window_mask_main&0x04u) && js_v10_30_window_masked(ppu,2u,x))) { stop=(bg_cache?js_renderer_v10_29_sample_mode1_bg_cached(ppu,2u,x,y,bg_cache+2u,&bg):js_renderer_v10_29_sample_mode1_bg(ppu,2u,x,y,&bg)); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_bg(&pixel->main_pixel,&bg); }
     if (prepared_obj_line && (ppu->main_screen_layers&0x10u) && !((ppu->window_mask_main&0x10u) && js_v10_30_window_masked(ppu,4u,x))) { stop=js_renderer_v10_30_sample_obj_pixel(ppu,prepared_obj_line,x,y,&obj); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_obj(&pixel->main_pixel,&obj); }
-    if (ppu->color_math_add_subscreen && (ppu->sub_screen_layers&0x04u) && !((ppu->window_mask_sub&0x04u) && js_v10_30_window_masked(ppu,2u,x))) { stop=js_renderer_v10_29_sample_mode1_bg(ppu,2u,x,y,&bg); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_bg(&pixel->sub_pixel,&bg); }
+    if (ppu->color_math_add_subscreen && (ppu->sub_screen_layers&0x04u) && !((ppu->window_mask_sub&0x04u) && js_v10_30_window_masked(ppu,2u,x))) { stop=(bg_cache?js_renderer_v10_29_sample_mode1_bg_cached(ppu,2u,x,y,bg_cache+2u,&bg):js_renderer_v10_29_sample_mode1_bg(ppu,2u,x,y,&bg)); if (stop!=JS_STOP_NONE) return stop; js_v10_30_consider_bg(&pixel->sub_pixel,&bg); }
     {
         int color_window = js_v10_30_window_masked(ppu,5u,x);
         int clip = js_v10_30_window_applies(ppu->color_math_clip_mode,color_window);
         int prevent = js_v10_30_window_applies(ppu->color_math_prevent_mode,color_window);
+        pixel->color_clipped=(uint8_t)(clip!=0);
         pixel->pre_brightness_bgr555=clip?0u:pixel->main_pixel.bgr555;
         if (!prevent && js_v10_30_math_enabled(ppu,&pixel->main_pixel)) {
             uint16_t addend=ppu->color_math_add_subscreen?pixel->sub_pixel.bgr555:ppu->fixed_color;
@@ -255,7 +258,7 @@ js_stop_reason js_renderer_v10_30_render_source_pixel(js_ppu_v09c *ppu,
         }
     }
     return js_v10_30_render_source_pixel_prepared(
-        ppu,x,y,backdrop,prepared_obj_line,pixel);
+        ppu,x,y,backdrop,prepared_obj_line,NULL,pixel);
 }
 
 js_stop_reason js_renderer_v10_30_render_source_scanline(js_ppu_v09c *ppu, uint16_t y,
@@ -265,6 +268,7 @@ js_stop_reason js_renderer_v10_30_render_source_scanline(js_ppu_v09c *ppu, uint1
     uint16_t x;
     js_obj_scanline_v10_30 line;
     const js_obj_scanline_v10_30 *prepared_obj_line = NULL;
+    js_bg_scanline_cache_v10_29 bg_cache[3]={{0}};
     if (!ppu || !pixels || y>=JS_V10_30_VISIBLE_HEIGHT)
         return JS_STOP_V10_30_RENDERER_INVALID_ARGUMENT;
     stop=js_renderer_v10_30_validate_source_display_configuration(ppu);
@@ -284,9 +288,45 @@ js_stop_reason js_renderer_v10_30_render_source_scanline(js_ppu_v09c *ppu, uint1
     for (x=0u;x<JS_V10_30_VISIBLE_WIDTH;++x) {
         js_screen_pixel_v10_30 sample;
         stop=js_v10_30_render_source_pixel_prepared(
-            ppu,x,y,backdrop,prepared_obj_line,&sample);
+            ppu,x,y,backdrop,prepared_obj_line,bg_cache,&sample);
         if (stop!=JS_STOP_NONE) return stop;
         pixels[x]=sample.rgb;
+    }
+    return JS_STOP_NONE;
+}
+
+js_stop_reason js_renderer_v10_30_render_source_scanline_water(js_ppu_v09c *ppu, uint16_t y,
+                                                          js_rgb8_v10_28 pixels[JS_V10_30_VISIBLE_WIDTH],
+                                                          const struct JungleWater60Palette *water) {
+    js_stop_reason stop;
+    if(!water||!water->phase)return js_renderer_v10_30_render_source_scanline(ppu,y,pixels);
+    uint16_t backdrop = 0u;
+    uint16_t x;
+    js_obj_scanline_v10_30 line;
+    const js_obj_scanline_v10_30 *prepared_obj_line = NULL;
+    js_bg_scanline_cache_v10_29 bg_cache[3]={{0}};
+    if (!ppu || !pixels || y>=JS_V10_30_VISIBLE_HEIGHT)
+        return JS_STOP_V10_30_RENDERER_INVALID_ARGUMENT;
+    stop=js_renderer_v10_30_validate_source_display_configuration(ppu);
+    if (stop!=JS_STOP_NONE) return stop;
+    if (!ppu->forced_blank) {
+        stop=js_renderer_v10_28_read_cgram_color(ppu,0u,&backdrop);
+        if (stop!=JS_STOP_NONE) return stop;
+        /* Match Mesen's scanline ownership: OAM is evaluated once for the
+           completed line, then the cached selection is sampled by each pixel.
+           The old path rescanned and decoded all 128 OAM entries 256 times. */
+        if (ppu->main_screen_layers&0x10u) {
+            stop=js_renderer_v10_30_evaluate_obj_scanline(ppu,y,&line);
+            if (stop!=JS_STOP_NONE) return stop;
+            prepared_obj_line=&line;
+        }
+    }
+    for (x=0u;x<JS_V10_30_VISIBLE_WIDTH;++x) {
+        js_screen_pixel_v10_30 sample;
+        stop=js_v10_30_render_source_pixel_prepared(
+            ppu,x,y,backdrop,prepared_obj_line,bg_cache,&sample);
+        if (stop!=JS_STOP_NONE) return stop;
+        jungle_gameplay_water60_shade(water,ppu,&sample,&pixels[x]);
     }
     return JS_STOP_NONE;
 }

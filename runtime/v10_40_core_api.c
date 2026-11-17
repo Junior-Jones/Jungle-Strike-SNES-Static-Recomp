@@ -3,6 +3,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "jungle/jungle_static_core.h"
+#include "jungle/gameplay_60.h"
+#include "jungle/gameplay_lights_60.h"
+#include "jungle/gameplay_water_60.h"
+#include "jungle/presentation_snapshot.h"
+#include "jungle/ui_60.h"
+#include "jungle/mission_graphics_60.h"
 #include "jungle/machine_v10_40.h"
 #include "jungle/renderer_v10_40.h"
 #include "jungle/status_v10_40.h"
@@ -54,10 +60,17 @@ struct JungleStaticCore {
     uint64_t ppu_renderer_domain_violation_scanlines;
     js_stop_reason machine_stop;
     js_stop_reason renderer_stop;
-    /* Presentation state is outside the original same-build snapshot payload. */
+    /* V2 writes UI timing through an explicit wire format. V1 ends here. */
+    JungleUi60State ui60;
+    /* V3 serializes presentation separately; host preferences remain external. */
     JungleWideState *wide;
+    uint8_t experimental_60fps;
+    /* Derived display context is latched at visible line0, so IRQ219 cannot
+       advance only the bottom rows of a rendered frame. No guest state. */
+    JungleWater60Palette water_palette;
+    uint8_t water_palette_valid;
 };
-#define JS_CORE_SNAPSHOT_BYTES offsetof(JungleStaticCore, wide)
+#define JS_CORE_SNAPSHOT_BYTES offsetof(JungleStaticCore, ui60)
 
 #define JS_PPU_AUDIT_MODE_V10_95          0x01u
 #define JS_PPU_AUDIT_BG3_PRIORITY_V10_95  0x02u
@@ -122,6 +135,8 @@ static void js_core_render_visible_scanline_v10_88(JungleStaticCore *c, uint16_t
 
     if (!c || y >= JUNGLE_STATIC_CORE_FRAME_HEIGHT) return;
     if (y == 0u) {
+        c->water_palette_valid=(uint8_t)(c->experimental_60fps&&
+            jungle_gameplay_water60_palette(&c->machine,&c->water_palette));
         if (c->renderer_stop != JS_STOP_NONE &&
             c->renderer_stop != JS_STOP_V10_40_RENDERER_UNAVAILABLE) return;
         c->renderer_stop = JS_STOP_NONE;
@@ -139,7 +154,10 @@ static void js_core_render_visible_scanline_v10_88(JungleStaticCore *c, uint16_t
        adding a framebuffer observer cannot perturb S-CPU-visible PPU state. */
     saved_range_over = c->machine.ppu.range_over;
     saved_time_over = c->machine.ppu.time_over;
-    stop = js_renderer_v10_40_render_scanline(&c->machine.ppu, y, line);
+    if(c->water_palette_valid)
+        stop=js_renderer_v10_40_render_scanline_water(&c->machine.ppu,y,line,&c->water_palette);
+    else
+        stop = js_renderer_v10_40_render_scanline(&c->machine.ppu, y, line);
     c->machine.ppu.range_over = saved_range_over;
     c->machine.ppu.time_over = saved_time_over;
     if (stop != JS_STOP_NONE) {
@@ -154,7 +172,8 @@ static void js_core_render_visible_scanline_v10_88(JungleStaticCore *c, uint16_t
             ((uint32_t)line[x].g << 8) | (uint32_t)line[x].b;
     }
     if(c->wide && c->wide->enabled) {
-        stop=jungle_wide_scanline(c->wide,&c->machine,c->rom,c->rom_size,y,line);
+        stop=jungle_wide_scanline_water(c->wide,&c->machine,c->rom,c->rom_size,y,line,
+            c->water_palette_valid?&c->water_palette:NULL);
         if(stop!=JS_STOP_NONE){c->renderer_stop=stop;c->frame_valid=0u;return;}
     }
     c->visible_scanlines_rendered++;
@@ -275,7 +294,7 @@ static int js_core_reinit_v10_40(JungleStaticCore *c) {
     js_stop_reason s;
     if (!c || !c->rom) return 0;
     if (c->machine_initialized) js_machine_v10_40_destroy(&c->machine);
-    memset(&ports,0,sizeof(ports));memset(&hooks,0,sizeof(hooks));memset(&c->machine,0,sizeof(c->machine));
+    memset(&ports,0,sizeof(ports));memset(&hooks,0,sizeof(hooks));memset(&c->machine,0,sizeof(c->machine));memset(&c->ui60,0,sizeof(c->ui60));
     s=js_machine_v10_40_init(&c->machine,c->rom,c->rom_size,ports,hooks);c->machine_initialized=(uint8_t)(s==JS_STOP_NONE);
     if (s == JS_STOP_NONE) {
         c->machine.scheduler.hooks.ppu_opaque = c;
@@ -294,7 +313,7 @@ JungleStaticCore *jungle_core_create(const void *data,size_t size){
 }
 void jungle_core_destroy(JungleStaticCore *c){if(!c)return;if(c->machine_initialized)js_machine_v10_40_destroy(&c->machine);free(c->wide);free(c->rom);free(c);}
 int jungle_core_power_on(JungleStaticCore *c){return js_core_reinit_v10_40(c);}
-int jungle_core_reset(JungleStaticCore *c){js_stop_reason s;if(!c||!c->machine_initialized)return 0;s=js_machine_v10_40_reset(&c->machine);jungle_wide_invalidate(c->wide);js_core_reset_ppu_audit_v10_95(c);c->machine_stop=s;c->renderer_stop=JS_STOP_V10_40_RENDERER_UNAVAILABLE;c->frame_valid=0;c->audio_batch_frames=0;c->visible_scanlines_rendered=0u;c->render_resync_pending=0u;c->render_observer_synchronized=1u;return s==JS_STOP_NONE;}
+int jungle_core_reset(JungleStaticCore *c){js_stop_reason s;if(!c||!c->machine_initialized)return 0;s=js_machine_v10_40_reset(&c->machine);jungle_wide_invalidate(c->wide);memset(&c->ui60,0,sizeof(c->ui60));js_core_reset_ppu_audit_v10_95(c);c->machine_stop=s;c->renderer_stop=JS_STOP_V10_40_RENDERER_UNAVAILABLE;c->frame_valid=0;c->audio_batch_frames=0;c->visible_scanlines_rendered=0u;c->render_resync_pending=0u;c->render_observer_synchronized=1u;return s==JS_STOP_NONE;}
 
 static int js_core_run_frame_mode_v10_88(
     JungleStaticCore *c,uint16_t p1,uint16_t p2,int render_output,
@@ -315,7 +334,45 @@ static int js_core_run_frame_mode_v10_88(
         c->render_resync_pending=1u;
         target++;
     }
-    while(c->machine.scheduler.frame_count<target&&steps<JS_V10_40_FRAME_STEP_LIMIT){s=js_machine_v10_40_step(&c->machine);if(s!=JS_STOP_NONE){c->machine_stop=s;c->frame_valid=0;c->render_output_enabled=1u;return 0;}if(c->renderer_stop!=JS_STOP_NONE&&c->renderer_stop!=JS_STOP_V10_40_RENDERER_UNAVAILABLE){c->frame_valid=0;c->render_output_enabled=1u;return 0;}steps++;if(audio_progress&&js_dsp_v10_33_pcm_available(&c->machine.apu.dsp)>=128u)audio_progress(c,progress_opaque);}
+    while(c->machine.scheduler.frame_count<target&&steps<JS_V10_40_FRAME_STEP_LIMIT){
+        uint8_t previous_bank=c->machine.cpu_core.cpu.pbr;
+        uint16_t previous_pc=c->machine.cpu_core.cpu.pc;
+        int graphics_budget=c->experimental_60fps&&
+            ((previous_bank==0xa0u&&jungle_ui60_graphics_context(&c->ui60,&c->machine))||
+             (previous_bank==0x80u&&previous_pc>=0xd018u&&previous_pc<=0xd6a4u&&
+              jungle_gameplay60_geometry_context(&c->machine)));
+        if(graphics_budget)c->machine.bus.cpu_speed_clocks|=JS_V09C_GRAPHICS_BUDGET;
+        s=js_machine_v10_40_step(&c->machine);
+        if(graphics_budget)c->machine.bus.cpu_speed_clocks&=(uint8_t)~JS_V09C_GRAPHICS_BUDGET;
+        if(s!=JS_STOP_NONE){c->machine_stop=s;c->frame_valid=0;c->render_output_enabled=1u;return 0;}
+        if(c->experimental_60fps){
+            /* Match each helper's native bank/entry guard at the caller, so
+               ordinary gameplay does not pay for unrelated UI commands. */
+            if(previous_bank==0x80u){
+                jungle_gameplay60_after_instruction(&c->machine,previous_bank,previous_pc);
+                if(previous_pc==0x9085u){
+                    s=jungle_gameplay_lights60_after_instruction(&c->machine,previous_bank,previous_pc);
+                    if(s!=JS_STOP_NONE){c->machine_stop=s;c->frame_valid=0;c->render_output_enabled=1u;return 0;}
+                }
+            }
+            if(previous_bank==0xa0u)
+                jungle_ui60_after_instruction(&c->ui60,&c->machine,previous_bank,previous_pc);
+            /* A bank-changing JSL can enter a pure graphics kernel. Qualify
+               its CURRENT bank rather than the caller's previous bank. */
+            if(c->machine.cpu_core.cpu.pbr==0xa0u){
+                s=(!jungle_mission60_gameover_context(&c->machine)||c->ui60.gameover_clock_armed)?
+                    jungle_mission60_after_instruction(&c->machine):JS_STOP_NONE;
+                if(s!=JS_STOP_NONE){c->machine_stop=s;c->frame_valid=0;c->render_output_enabled=1u;return 0;}
+            }
+        }
+        if((previous_bank==0xa0u&&(c->experimental_60fps||c->ui60.mission.count))||
+           (!c->experimental_60fps&&c->ui60.mission.count)){
+            s=jungle_mission60_batch_after_instruction(&c->ui60.mission,&c->machine,
+                previous_bank,previous_pc,c->experimental_60fps);
+            if(s!=JS_STOP_NONE){c->machine_stop=s;c->frame_valid=0;c->render_output_enabled=1u;return 0;}
+        }
+        if(c->renderer_stop!=JS_STOP_NONE&&c->renderer_stop!=JS_STOP_V10_40_RENDERER_UNAVAILABLE){c->frame_valid=0;c->render_output_enabled=1u;return 0;}steps++;if(audio_progress&&js_dsp_v10_33_pcm_available(&c->machine.apu.dsp)>=128u)audio_progress(c,progress_opaque);
+    }
     if(c->machine.scheduler.frame_count<target){c->machine_stop=JS_STOP_V10_40_FRAME_STEP_LIMIT;c->frame_valid=0;c->render_output_enabled=1u;return 0;}
     c->render_output_enabled=1u;
     c->render_observer_synchronized=(uint8_t)(render_output!=0);
@@ -323,6 +380,8 @@ static int js_core_run_frame_mode_v10_88(
     return 1;
 }
 int jungle_core_run_frame(JungleStaticCore *c,uint16_t p1,uint16_t p2){return js_core_run_frame_mode_v10_88(c,p1,p2,1,NULL,NULL);}
+int jungle_core_experimental_60fps_enabled(const JungleStaticCore *c){return c&&c->experimental_60fps!=0u;}
+int jungle_core_set_experimental_60fps(JungleStaticCore *c,int enabled){if(!c)return 0;if(c->experimental_60fps!=(uint8_t)(enabled!=0)){if(c->ui60.mission.count)return 0;memset(&c->ui60,0,sizeof(c->ui60));}c->experimental_60fps=(uint8_t)(enabled!=0);return 1;}
 int jungle_core_run_frame_streamed(JungleStaticCore *c,uint16_t p1,uint16_t p2,JungleCoreAudioProgressCallback progress,void *opaque){return js_core_run_frame_mode_v10_88(c,p1,p2,1,progress,opaque);}
 int jungle_core_run_frame_headless(JungleStaticCore *c,uint16_t p1,uint16_t p2){return js_core_run_frame_mode_v10_88(c,p1,p2,0,NULL,NULL);}
 int jungle_core_get_frame(const JungleStaticCore *c,JungleCoreFrame *out){if(!c||!out||!c->frame_valid)return 0;out->bgra_pixels=(c->wide&&c->wide->enabled&&c->wide->valid&&c->wide->active)?c->wide->pixels:c->frame_bgra;out->width=(c->wide&&c->wide->enabled&&c->wide->valid&&c->wide->active)?JUNGLE_WIDE_WIDTH:JUNGLE_STATIC_CORE_FRAME_WIDTH;out->height=(c->wide&&c->wide->enabled&&c->wide->valid&&c->wide->active)?JUNGLE_WIDE_HEIGHT:JUNGLE_STATIC_CORE_FRAME_HEIGHT;out->pitch_bytes=out->width*4u;out->frame_number=c->rendered_frame;return 1;}
@@ -334,15 +393,41 @@ int jungle_core_set_widescreen(JungleStaticCore *c,int enabled){
     if(enabled&&!c->wide){c->wide=(JungleWideState*)calloc(1,sizeof(*c->wide));if(!c->wide)return 0;}
     if(c->wide){c->wide->enabled=enabled!=0;jungle_wide_invalidate(c->wide);}
     if(c->frame_valid && c->render_observer_synchronized)
-        jungle_wide_restore_frame(c->wide,&c->machine,c->rom,c->rom_size,c->frame_bgra);
+        jungle_wide_restore_frame(c->wide,&c->machine,c->rom,c->rom_size,c->frame_bgra,
+            c->water_palette_valid?&c->water_palette:NULL);
     return 1;
 }
+static size_t js_core_snapshot_bytes_v10_40(const JungleStaticCore *c){
+    if(c->experimental_60fps||c->ui60.mission.count||jungle_core_widescreen_enabled(c))
+        return JS_CORE_SNAPSHOT_BYTES+JUNGLE_UI60_WIRE_BYTES+
+            jungle_presentation_snapshot_size(jungle_core_widescreen_enabled(c));
+    return JS_CORE_SNAPSHOT_BYTES;
+}
 size_t jungle_core_snapshot_size(const JungleStaticCore *c){
-    size_t smp_size;
+    size_t smp_size,core_size;
     if(!c||!c->machine_initialized||!c->machine.apu.smp)return 0u;
-    smp_size=js_smp_v10_2_snapshot_size();
-    if(!smp_size||smp_size>SIZE_MAX-sizeof(js_snapshot_header_v10_40)-JS_CORE_SNAPSHOT_BYTES)return 0u;
-    return sizeof(js_snapshot_header_v10_40)+JS_CORE_SNAPSHOT_BYTES+smp_size;
+    smp_size=js_smp_v10_2_snapshot_size();core_size=js_core_snapshot_bytes_v10_40(c);
+    if(!smp_size||smp_size>SIZE_MAX-sizeof(js_snapshot_header_v10_40)-core_size)return 0u;
+    return sizeof(js_snapshot_header_v10_40)+core_size+smp_size;
+}
+int jungle_core_snapshot_size_supported(const JungleStaticCore *c,size_t size){
+    size_t legacy;
+    if(!c||!c->machine_initialized||!c->machine.apu.smp)return 0;
+    legacy=sizeof(js_snapshot_header_v10_40)+JS_CORE_SNAPSHOT_BYTES+js_smp_v10_2_snapshot_size();
+    return size==legacy||size==legacy+JUNGLE_UI60_WIRE_BYTES||
+        size==legacy+JUNGLE_UI60_WIRE_BYTES+jungle_presentation_snapshot_size(0)||
+        size==legacy+JUNGLE_UI60_WIRE_BYTES+jungle_presentation_snapshot_size(1);
+}
+
+static void js_snapshot_context_padding_v3(js_static_context_key *key){
+    uint8_t used[sizeof(*key)]={0};
+    uint8_t *bytes=(uint8_t*)key;
+    size_t i;
+#define JS_CONTEXT_MEMBER(name) memset(used+offsetof(js_static_context_key,name),1,sizeof(key->name))
+    JS_CONTEXT_MEMBER(pbr);JS_CONTEXT_MEMBER(pc);JS_CONTEXT_MEMBER(e);
+    JS_CONTEXT_MEMBER(m);JS_CONTEXT_MEMBER(x);
+#undef JS_CONTEXT_MEMBER
+    for(i=0;i<sizeof(*key);i++)if(!used[i])bytes[i]=0;
 }
 
 int jungle_core_save_snapshot(const JungleStaticCore *c,void *dst,size_t dst_size){
@@ -350,12 +435,12 @@ int jungle_core_save_snapshot(const JungleStaticCore *c,void *dst,size_t dst_siz
     JungleStaticCore *copy;
     uint8_t *bytes=(uint8_t*)dst;
     uint8_t *smp_bytes;
-    size_t expected;
+    size_t expected,core_size;
     size_t smp_size;
     if(!c||!dst)return 0;
-    expected=jungle_core_snapshot_size(c);
+    expected=jungle_core_snapshot_size(c);core_size=js_core_snapshot_bytes_v10_40(c);
     smp_size=js_smp_v10_2_snapshot_size();
-    if(!expected||dst_size!=expected||JS_CORE_SNAPSHOT_BYTES>UINT32_MAX||smp_size>UINT32_MAX)return 0;
+    if(!expected||dst_size!=expected||core_size>UINT32_MAX||smp_size>UINT32_MAX)return 0;
     copy=(JungleStaticCore*)malloc(sizeof(*copy));
     if(!copy)return 0;
     *copy=*c;
@@ -369,19 +454,41 @@ int jungle_core_save_snapshot(const JungleStaticCore *c,void *dst,size_t dst_siz
     copy->machine.apu.dsp.pcm_write_index=0u;
     copy->machine.apu.dsp.pcm_count=0u;
     js_machine_v10_40_snapshot_sanitize(&copy->machine);
-    smp_bytes=bytes+sizeof(header)+JS_CORE_SNAPSHOT_BYTES;
+    if(core_size>JS_CORE_SNAPSHOT_BYTES){
+        unsigned i;
+        /* Context structs can carry unspecified ABI padding from local keys.
+           V3 canonicalizes only those bytes, never emulated context fields.
+           Leave V1's existing representation unchanged for compatibility. */
+        js_snapshot_context_padding_v3(&copy->machine.cpu_core.diagnostic_current_key);
+        js_snapshot_context_padding_v3(&copy->machine.cpu_core.diagnostic_failure_source);
+        js_snapshot_context_padding_v3(&copy->machine.cpu_core.diagnostic_failure_target);
+        for(i=0;i<JS_V05C_DIAGNOSTIC_EXPECTED_CAPACITY;i++)
+            js_snapshot_context_padding_v3(copy->machine.cpu_core.diagnostic_expected+i);
+        for(i=0;i<JS_V05C_DIAGNOSTIC_TRACE_CAPACITY;i++)
+            js_snapshot_context_padding_v3(copy->machine.cpu_core.diagnostic_trace+i);
+    }
+    memcpy(bytes+sizeof(header),copy,JS_CORE_SNAPSHOT_BYTES);
+    if(core_size>JS_CORE_SNAPSHOT_BYTES){
+        uint8_t *presentation=bytes+sizeof(header)+JS_CORE_SNAPSHOT_BYTES+JUNGLE_UI60_WIRE_BYTES;
+        jungle_ui60_encode(&c->ui60,bytes+sizeof(header)+JS_CORE_SNAPSHOT_BYTES);
+        if(!jungle_presentation_snapshot_encode(jungle_core_widescreen_enabled(c)?c->wide:NULL,
+            &c->water_palette,c->water_palette_valid,presentation,
+            core_size-JS_CORE_SNAPSHOT_BYTES-JUNGLE_UI60_WIRE_BYTES)){
+            free(copy);return 0;
+        }
+    }
+    smp_bytes=bytes+sizeof(header)+core_size;
     if(!js_smp_v10_2_snapshot_save(c->machine.apu.smp,smp_bytes,smp_size)){
         free(copy);return 0;
     }
     memset(&header,0,sizeof(header));
     memcpy(header.magic,"JSSNAP10",8u);
-    header.version=JS_V10_40_SNAPSHOT_VERSION;
-    header.core_size=(uint32_t)JS_CORE_SNAPSHOT_BYTES;
+    header.version=core_size>JS_CORE_SNAPSHOT_BYTES?3u:JS_V10_40_SNAPSHOT_VERSION;
+    header.core_size=(uint32_t)core_size;
     header.smp_size=(uint32_t)smp_size;
-    header.core_hash=js_fnv_bytes_v10_40((const uint8_t*)copy,JS_CORE_SNAPSHOT_BYTES);
+    header.core_hash=js_fnv_bytes_v10_40(bytes+sizeof(header),core_size);
     header.smp_hash=js_fnv_bytes_v10_40(smp_bytes,smp_size);
     memcpy(bytes,&header,sizeof(header));
-    memcpy(bytes+sizeof(header),copy,JS_CORE_SNAPSHOT_BYTES);
     free(copy);
     return 1;
 }
@@ -394,35 +501,69 @@ int jungle_core_load_snapshot(JungleStaticCore *c,const void *src,size_t src_siz
     js_smp_v10_2 *smp;
     uint8_t *rom;
     size_t rom_size;
-    size_t expected;
+    JungleUi60State ui60;
+    JunglePresentationSnapshot presentation={0};
+    int restored_wide=0;
+    size_t core_size;
     size_t smp_size;
     if(!c||!src||!c->machine_initialized||!c->machine.apu.smp)return 0;
-    expected=jungle_core_snapshot_size(c);
     smp_size=js_smp_v10_2_snapshot_size();
-    if(!expected||src_size!=expected||src_size<sizeof(header))return 0;
+    if(src_size<sizeof(header)||!jungle_core_snapshot_size_supported(c,src_size))return 0;
     memcpy(&header,bytes,sizeof(header));
-    if(memcmp(header.magic,"JSSNAP10",8u)!=0||
-       header.version!=JS_V10_40_SNAPSHOT_VERSION||
-       header.core_size!=JS_CORE_SNAPSHOT_BYTES||header.smp_size!=smp_size)return 0;
+    if(memcmp(header.magic,"JSSNAP10",8u)!=0||header.reserved||
+       (header.version!=1u&&header.version!=2u&&header.version!=3u)||header.smp_size!=smp_size)return 0;
+    core_size=JS_CORE_SNAPSHOT_BYTES+(header.version>=2u?JUNGLE_UI60_WIRE_BYTES:0u);
+    if(header.version==3u){
+        if(header.core_size!=core_size+jungle_presentation_snapshot_size(0)&&
+           header.core_size!=core_size+jungle_presentation_snapshot_size(1))return 0;
+        core_size=header.core_size;
+    }
+    if(header.core_size!=core_size||src_size!=sizeof(header)+core_size+smp_size)return 0;
+    memset(&ui60,0,sizeof(ui60));
+    if(header.version>=2u&&!jungle_ui60_decode(&ui60,bytes+sizeof(header)+JS_CORE_SNAPSHOT_BYTES))return 0;
     copy=(const JungleStaticCore*)(bytes+sizeof(header));
-    smp_bytes=bytes+sizeof(header)+JS_CORE_SNAPSHOT_BYTES;
-    if(header.core_hash!=js_fnv_bytes_v10_40((const uint8_t*)copy,JS_CORE_SNAPSHOT_BYTES)||
+    smp_bytes=bytes+sizeof(header)+core_size;
+    if(header.core_hash!=js_fnv_bytes_v10_40((const uint8_t*)copy,core_size)||
        header.smp_hash!=js_fnv_bytes_v10_40(smp_bytes,smp_size))return 0;
+    if(ui60.password_error_armed&&copy->machine.scheduler.frame_count<UINT32_MAX&&
+       ui60.password_error_field>copy->machine.scheduler.frame_count)return 0;
+    if(ui60.gameover_clock_armed&&ui60.gameover_tick_field>copy->machine.scheduler.frame_count)return 0;
+    if(ui60.mission.publication_due>copy->machine.scheduler.frame_count&&
+       ui60.mission.publication_due-copy->machine.scheduler.frame_count>3u)return 0;
     if(!copy->machine_initialized||copy->rom!=NULL||copy->machine.apu.smp!=NULL)return 0;
+    /* Decode and allocate before committing either native processor. No
+       allocation or fallible validation follows the successful SMP load. */
+    if(header.version==3u){
+        if(!jungle_presentation_snapshot_decode(&presentation,
+            bytes+sizeof(header)+JS_CORE_SNAPSHOT_BYTES+JUNGLE_UI60_WIRE_BYTES,
+            core_size-JS_CORE_SNAPSHOT_BYTES-JUNGLE_UI60_WIRE_BYTES))return 0;
+        restored_wide=presentation.wide!=NULL;
+    }
     smp=c->machine.apu.smp;
-    if(!js_smp_v10_2_snapshot_load(smp,smp_bytes,smp_size))return 0;
+    if(!js_smp_v10_2_snapshot_load(smp,smp_bytes,smp_size)){
+        jungle_presentation_snapshot_clear(&presentation);return 0;
+    }
     rom=c->rom;
     rom_size=c->rom_size;
     memcpy(c,copy,JS_CORE_SNAPSHOT_BYTES);
-    jungle_wide_invalidate(c->wide);
+    c->ui60=ui60;
     c->rom=rom;
     c->rom_size=rom_size;
     c->machine.apu.smp=smp;
     js_machine_v10_40_snapshot_rebind(&c->machine,rom,rom_size,c,
                                       js_core_ppu_event_v10_88);
+    if(header.version==3u){
+        jungle_presentation_snapshot_apply(&presentation,&c->wide,&c->machine,
+            &c->water_palette,&c->water_palette_valid);
+        jungle_presentation_snapshot_clear(&presentation);
+    }else{
+        /* Older states have no sprite-wrap or latched presentation history. */
+        jungle_wide_invalidate(c->wide);c->water_palette_valid=0;
+    }
     c->audio_batch_frames=0u;
-    if(c->frame_valid && c->render_observer_synchronized)
-        jungle_wide_restore_frame(c->wide,&c->machine,c->rom,c->rom_size,c->frame_bgra);
+    if(!restored_wide && c->frame_valid && c->render_observer_synchronized)
+        jungle_wide_restore_frame(c->wide,&c->machine,c->rom,c->rom_size,c->frame_bgra,
+            c->water_palette_valid?&c->water_palette:NULL);
     return 1;
 }
 
@@ -512,8 +653,45 @@ static int js_diag_format_v10_40(const JungleStaticCore *c,char *dst,size_t cap)
     js_smp_v10_2_state ss;JungleCoreFailure failure;uint64_t wram,vr,cg,oam,aram,known,frameh;int n;if(!c)return -1;memset(&ss,0,sizeof(ss));memset(&failure,0,sizeof(failure));if(c->machine.apu.smp)js_smp_v10_2_get_state(c->machine.apu.smp,&ss);(void)jungle_core_failure(c,&failure);
     wram=js_fnv_bytes_v10_40(c->machine.bus.base.wram,sizeof(c->machine.bus.base.wram));vr=js_fnv_u16le_v10_40(c->machine.ppu.vram,JS_V09C_VRAM_WORDS);cg=js_fnv_u16le_v10_40(c->machine.ppu.cgram,JS_V09C_CGRAM_WORDS);oam=js_fnv_bytes_v10_40(c->machine.ppu.oam,JS_V09C_OAM_BYTES);aram=js_fnv_bytes_v10_40(c->machine.apu.aram,JS_V10_33_ARAM_SIZE);known=js_fnv_bytes_v10_40(c->machine.apu.aram_known,JS_V10_33_ARAM_KNOWN_SIZE);frameh=js_fnv_bytes_v10_40((const uint8_t*)c->frame_bgra,sizeof(c->frame_bgra));
     n=snprintf(dst,cap,
-"{\n  \"schema\":\"JungleStrikeDiagnostic1.0.0\",\n  \"core_version\":\"1.1.0\",\n  \"authority\":{\"sealed_contexts\":27835,\"production_contexts\":28636,\"production_rom_bytes\":66177,\"immutable_data_bytes\":46386},\n  \"stop\":{\"machine\":%u,\"renderer\":%u},\n  \"failure_evidence\":{\"valid\":%s,\"stop_code\":%u,\"processor\":\"%s\",\"reason\":\"%s\",\"source\":\"%s\",\"target\":\"%s\",\"expected_count\":%u,\"expected\":\"%s\",\"recent_count\":%u,\"recent_oldest_to_newest\":\"%s\"},\n  \"scpu\":{\"pbr\":%u,\"pc\":%u,\"a\":%u,\"x\":%u,\"y\":%u,\"sp\":%u,\"d\":%u,\"dbr\":%u,\"p\":%u,\"e\":%u,\"retired\":%" PRIu64 "},\n  \"scheduler\":{\"master_clock\":%" PRIu64 ",\"frame\":%" PRIu64 ",\"scanline\":%u,\"hclock\":%u,\"smp_target\":%" PRIu64 ",\"audio_clock_profile\":\"%s\",\"audio_half_tick_ratio_numerator\":%u,\"audio_half_tick_ratio_denominator\":%u,\"audio_clock_remainder\":%u,\"audio_sample_rate\":%u},\n  \"smp\":{\"pc\":%u,\"instructions\":%" PRIu64 ",\"cycles\":%" PRIu64 ",\"aot_instructions\":%" PRIu64 ",\"stopped\":%u},\n  \"dsp\":{\"phase\":%u,\"phase_steps\":%" PRIu64 ",\"sample_steps\":%" PRIu64 ",\"pcm_frames\":%" PRIu64 ",\"pcm_known_frames\":%" PRIu64 ",\"pcm_unknown_frames\":%" PRIu64 ",\"pcm_hash\":\"%016" PRIx64 "\",\"pcm_hash_fully_known\":%s,\"last_stop\":%u,\"last_aram_phase\":%u,\"last_aram_address\":%u,\"last_aram_known\":%u,\"dir_latch\":%u,\"source_number\":%u,\"brr_next_address\":%u,\"brr_next_known\":%u,\"mvoll\":%d,\"mvolr\":%d,\"evoll\":%d,\"evolr\":%d,\"efb\":%d,\"flg\":%u,\"esa\":%u,\"edl\":%u,\"echo_known_flags\":%u},\n  \"input\":{\"port1_serial\":%u,\"port2_serial\":%u,\"auto0\":%u,\"auto1\":%u},\n  \"ppu\":{\"forced_blank\":%u,\"brightness\":%u,\"bg_mode\":%u,\"tm\":%u,\"ts\":%u,\"cgwsel_clip\":%u,\"cgwsel_prevent\":%u,\"cgwsel_subscreen\":%u,\"cgadsub\":%u},\n  \"hashes_fnv1a64\":{\"wram\":\"%016" PRIx64 "\",\"vram\":\"%016" PRIx64 "\",\"cgram\":\"%016" PRIx64 "\",\"oam\":\"%016" PRIx64 "\",\"aram\":\"%016" PRIx64 "\",\"aram_known\":\"%016" PRIx64 "\",\"frame_bgra\":\"%016" PRIx64 "\"},\n  \"frontend_boundary\":{\"exact_pc_smp_aot\":true,\"exact_32_phase_sdsp\":true,\"interpreter_fallback\":false,\"frame_valid\":%s,\"diagnostic_snapshot_restorable_save_state\":false}\n}\n",
+"{\n  \"schema\":\"JungleStrikeDiagnostic1.0.0\",\n  \"core_version\":\"1.2.0\",\n  \"authority\":{\"sealed_contexts\":27835,\"production_contexts\":28833,\"production_rom_bytes\":66708,\"immutable_data_bytes\":46386},\n  \"stop\":{\"machine\":%u,\"renderer\":%u},\n  \"failure_evidence\":{\"valid\":%s,\"stop_code\":%u,\"processor\":\"%s\",\"reason\":\"%s\",\"source\":\"%s\",\"target\":\"%s\",\"expected_count\":%u,\"expected\":\"%s\",\"recent_count\":%u,\"recent_oldest_to_newest\":\"%s\"},\n  \"scpu\":{\"pbr\":%u,\"pc\":%u,\"a\":%u,\"x\":%u,\"y\":%u,\"sp\":%u,\"d\":%u,\"dbr\":%u,\"p\":%u,\"e\":%u,\"retired\":%" PRIu64 "},\n  \"scheduler\":{\"master_clock\":%" PRIu64 ",\"frame\":%" PRIu64 ",\"scanline\":%u,\"hclock\":%u,\"smp_target\":%" PRIu64 ",\"audio_clock_profile\":\"%s\",\"audio_half_tick_ratio_numerator\":%u,\"audio_half_tick_ratio_denominator\":%u,\"audio_clock_remainder\":%u,\"audio_sample_rate\":%u},\n  \"smp\":{\"pc\":%u,\"instructions\":%" PRIu64 ",\"cycles\":%" PRIu64 ",\"aot_instructions\":%" PRIu64 ",\"stopped\":%u},\n  \"dsp\":{\"phase\":%u,\"phase_steps\":%" PRIu64 ",\"sample_steps\":%" PRIu64 ",\"pcm_frames\":%" PRIu64 ",\"pcm_known_frames\":%" PRIu64 ",\"pcm_unknown_frames\":%" PRIu64 ",\"pcm_hash\":\"%016" PRIx64 "\",\"pcm_hash_fully_known\":%s,\"last_stop\":%u,\"last_aram_phase\":%u,\"last_aram_address\":%u,\"last_aram_known\":%u,\"dir_latch\":%u,\"source_number\":%u,\"brr_next_address\":%u,\"brr_next_known\":%u,\"mvoll\":%d,\"mvolr\":%d,\"evoll\":%d,\"evolr\":%d,\"efb\":%d,\"flg\":%u,\"esa\":%u,\"edl\":%u,\"echo_known_flags\":%u},\n  \"input\":{\"port1_serial\":%u,\"port2_serial\":%u,\"auto0\":%u,\"auto1\":%u},\n  \"ppu\":{\"forced_blank\":%u,\"brightness\":%u,\"bg_mode\":%u,\"tm\":%u,\"ts\":%u,\"cgwsel_clip\":%u,\"cgwsel_prevent\":%u,\"cgwsel_subscreen\":%u,\"cgadsub\":%u},\n  \"hashes_fnv1a64\":{\"wram\":\"%016" PRIx64 "\",\"vram\":\"%016" PRIx64 "\",\"cgram\":\"%016" PRIx64 "\",\"oam\":\"%016" PRIx64 "\",\"aram\":\"%016" PRIx64 "\",\"aram_known\":\"%016" PRIx64 "\",\"frame_bgra\":\"%016" PRIx64 "\"},\n  \"frontend_boundary\":{\"exact_pc_smp_aot\":true,\"exact_32_phase_sdsp\":true,\"interpreter_fallback\":false,\"frame_valid\":%s,\"diagnostic_snapshot_restorable_save_state\":false}\n}\n",
 (unsigned)c->machine_stop,(unsigned)c->renderer_stop,failure.failed?"true":"false",(unsigned)failure.stop_code,failure.processor,failure.reason,failure.source_context,failure.target_context,(unsigned)failure.expected_context_count,failure.expected_contexts,(unsigned)failure.recent_context_count,failure.recent_contexts,(unsigned)c->machine.cpu_core.cpu.pbr,(unsigned)c->machine.cpu_core.cpu.pc,(unsigned)c->machine.cpu_core.cpu.a,(unsigned)c->machine.cpu_core.cpu.x,(unsigned)c->machine.cpu_core.cpu.y,(unsigned)c->machine.cpu_core.cpu.sp,(unsigned)c->machine.cpu_core.cpu.d,(unsigned)c->machine.cpu_core.cpu.dbr,(unsigned)c->machine.cpu_core.cpu.p,(unsigned)c->machine.cpu_core.cpu.e,c->machine.cpu_core.cpu.retired_instructions,c->machine.scheduler.master_clock,c->machine.scheduler.frame_count,(unsigned)c->machine.scheduler.scanline,(unsigned)c->machine.scheduler.hclock,c->machine.scheduler.smp_target_cycle,JS_V09C_AUDIO_CLOCK_PROFILE_NAME,(unsigned)JS_V09C_SMP_HALF_TICK_RATIO_NUMERATOR,(unsigned)JS_V09C_SMP_HALF_TICK_RATIO_DENOMINATOR,(unsigned)c->machine.scheduler.smp_clock_remainder,(unsigned)JUNGLE_STATIC_CORE_AUDIO_SAMPLE_RATE,(unsigned)ss.pc,ss.instructions,ss.executed_cycles,ss.aot_instructions,(unsigned)ss.stopped,(unsigned)c->machine.apu.dsp.phase,c->machine.apu.dsp.phase_steps,c->machine.apu.dsp.sample_steps,c->machine.apu.dsp.pcm_frames_produced,c->machine.apu.dsp.pcm_known_frames_produced,c->machine.apu.dsp.pcm_unknown_frames_produced,c->machine.apu.dsp.pcm_fnv1a64,c->machine.apu.dsp.pcm_unknown_frames_produced?"false":"true",(unsigned)c->machine.apu.dsp.last_stop,(unsigned)c->machine.apu.dsp.last_aram_phase,(unsigned)c->machine.apu.dsp.last_aram_address,(unsigned)c->machine.apu.dsp.last_aram_known,(unsigned)c->machine.apu.dsp.dir_latch,(unsigned)c->machine.apu.dsp.source_number,(unsigned)c->machine.apu.dsp.brr_next_address,(unsigned)c->machine.apu.dsp.brr_next_known,(int)(int8_t)c->machine.apu.dsp.regs[0x0c],(int)(int8_t)c->machine.apu.dsp.regs[0x1c],(int)(int8_t)c->machine.apu.dsp.regs[0x2c],(int)(int8_t)c->machine.apu.dsp.regs[0x3c],(int)(int8_t)c->machine.apu.dsp.regs[0x0d],(unsigned)c->machine.apu.dsp.regs[0x6c],(unsigned)c->machine.apu.dsp.regs[0x6d],(unsigned)c->machine.apu.dsp.regs[0x7d],(unsigned)c->machine.apu.dsp.echo_enabled_latch,(unsigned)c->machine.input.physical_report[0],(unsigned)c->machine.input.physical_report[1],(unsigned)c->machine.input.auto_data[0],(unsigned)c->machine.input.auto_data[1],(unsigned)c->machine.ppu.forced_blank,(unsigned)c->machine.ppu.brightness,(unsigned)c->machine.ppu.bg_mode,(unsigned)c->machine.ppu.main_screen_layers,(unsigned)c->machine.ppu.sub_screen_layers,(unsigned)c->machine.ppu.color_math_clip_mode,(unsigned)c->machine.ppu.color_math_prevent_mode,(unsigned)c->machine.ppu.color_math_add_subscreen,(unsigned)c->machine.ppu.color_math_enabled,wram,vr,cg,oam,aram,known,frameh,c->frame_valid?"true":"false");return n;
+}
+static uint16_t js_capture_word(const uint8_t *w,size_t at){
+    return (uint16_t)(w[at]|((uint16_t)w[at+1u]<<8));
+}
+static int32_t js_capture_fixed(const uint8_t *w,size_t at){
+    uint32_t value=(uint32_t)js_capture_word(w,at)|((uint32_t)js_capture_word(w,at+2u)<<16);
+    int32_t signed_value;memcpy(&signed_value,&value,sizeof(value));return signed_value;
+}
+int jungle_core_capture_sample(const JungleStaticCore *c,JungleCoreCaptureSample *out){
+    const uint8_t *w;size_t actor,resource;
+    if(!c||!out||!c->machine_initialized)return 0;
+    memset(out,0,sizeof(*out));w=c->machine.bus.base.wram;
+    out->machine_frame=c->machine.scheduler.frame_count;out->displayed_frame=c->rendered_frame;
+    out->master_clock=c->machine.scheduler.master_clock;out->retired=c->machine.cpu_core.cpu.retired_instructions;
+    out->scanline=c->machine.scheduler.scanline;out->hclock=c->machine.scheduler.hclock;
+    out->mission=js_capture_word(w,0xd2c);out->gameplay_mode=js_capture_word(w,0x76);
+    out->ui_scene=js_capture_word(w,0xc0b);out->player_pointer=js_capture_word(w,0x848);
+    out->resource_pointer=js_capture_word(w,0x1110a);out->camera_x=js_capture_word(w,0x40);
+    out->camera_y=js_capture_word(w,0x42);out->lives=js_capture_word(w,0x8b2);
+    out->physical_counter=js_capture_word(w,0x72);out->publication_counter=js_capture_word(w,0x8aa);
+    out->contact_phase=js_capture_word(w,0x8fe);
+    out->input_serial=c->machine.input.physical_report[0];out->input_auto=c->machine.input.auto_data[0];
+    out->actor_available=(uint8_t)(out->player_pointer!=0u&&out->player_pointer<=0xff8cu);
+    out->resources_available=(uint8_t)(out->resource_pointer!=0u&&out->resource_pointer<=0xffeau);
+    actor=0x10000u+out->player_pointer;resource=0x10000u+out->resource_pointer;
+    if(out->actor_available){
+        out->vehicle_class=js_capture_word(w,actor+0x72u);out->heading=js_capture_word(w,actor+0x16u);
+        out->armor=js_capture_word(w,actor+0x6au);out->x_fixed=js_capture_fixed(w,actor+8u);
+        out->y_fixed=js_capture_fixed(w,actor+0xcu);out->z_fixed=js_capture_fixed(w,actor+0x10u);
+    }
+    if(out->resources_available){
+        out->fuel=js_capture_word(w,resource+0xeu);out->hellfire=js_capture_word(w,resource+0x10u);
+        out->hydra=js_capture_word(w,resource+0x12u);out->gun=js_capture_word(w,resource+0x14u);
+    }
+    out->experimental_60fps=c->experimental_60fps;out->widescreen=(uint8_t)jungle_core_widescreen_enabled(c);
+    out->water_valid=c->water_palette_valid;out->water_phase=c->water_palette.phase;
+    out->pending_ui_packets=c->ui60.mission.count;return 1;
 }
 size_t jungle_core_diagnostic_snapshot_size(const JungleStaticCore *c){int n=js_diag_format_v10_40(c,NULL,0);return n<0?0u:(size_t)n+1u;}
 int jungle_core_save_diagnostic_snapshot(const JungleStaticCore *c,void *dst,size_t size){int n;if(!c||!dst)return 0;n=js_diag_format_v10_40(c,(char*)dst,size);return n>=0&&(size_t)n<size;}

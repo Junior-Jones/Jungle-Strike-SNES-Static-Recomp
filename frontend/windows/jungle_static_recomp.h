@@ -74,6 +74,9 @@ uint64_t jungle_recomp_audio_dropped_frames(
 void jungle_recomp_audio_clear_overflow(JungleStrikeRecomp *instance);
 
 int jungle_recomp_widescreen_enabled(const JungleStrikeRecomp *instance);
+int jungle_recomp_experimental_60fps_enabled(const JungleStrikeRecomp *instance);
+int jungle_recomp_set_experimental_60fps(JungleStrikeRecomp *instance,int enabled,
+                                         char *error,size_t error_capacity);
 int jungle_recomp_set_widescreen(JungleStrikeRecomp *instance, int enabled,
                                  char *error, size_t error_capacity);
 int jungle_recomp_snapshot_save(const JungleStrikeRecomp *instance,

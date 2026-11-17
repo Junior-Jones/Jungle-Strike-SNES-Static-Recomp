@@ -102,7 +102,7 @@ static int capture_player(JungleStaticCore *n, JungleStaticCore *w,
   for (i = 0; i < 4; i++)
     if (count[i] && !(player_seen_mask & (1u << i))) {
       void *data;
-      size_t z = jungle_core_snapshot_size(n);
+      size_t z = guest_snapshot_size(n);
       player_seen_mask |= 1u << i;
       snprintf(path, sizeof(path), "%s/player-edge-%u-wide.ppm", dir, i);
       if (!write_frame(w, path))
@@ -111,7 +111,7 @@ static int capture_player(JungleStaticCore *n, JungleStaticCore *w,
       if (!write_frame(n, path))
         return 0;
       data = malloc(z);
-      jungle_core_save_snapshot(n, data, z);
+      save_guest_snapshot(n, data, z);
       snprintf(path, sizeof(path), "%s/player-edge-%u.snapshot", dir, i);
       if (!save_bytes(path, data, z))
         return 0;
@@ -128,7 +128,7 @@ static int capture_player(JungleStaticCore *n, JungleStaticCore *w,
     if (count[i] >= 80 && !(player_visible_mask & (1u << i)) && raw_minx >= 0 &&
         raw_miny >= 0 && raw_maxx <= JUNGLE_WIDE_WIDTH && raw_maxy <= 284) {
       void *data;
-      size_t z = jungle_core_snapshot_size(n);
+      size_t z = guest_snapshot_size(n);
       player_visible_mask |= 1u << i;
       snprintf(path, sizeof(path), "%s/player-visible-%u-wide.ppm", dir, i);
       if (!write_frame(w, path))
@@ -137,7 +137,7 @@ static int capture_player(JungleStaticCore *n, JungleStaticCore *w,
       if (!write_frame(n, path))
         return 0;
       data = malloc(z);
-      jungle_core_save_snapshot(n, data, z);
+      save_guest_snapshot(n, data, z);
       snprintf(path, sizeof(path), "%s/player-visible-%u.snapshot", dir, i);
       if (!save_bytes(path, data, z))
         return 0;
@@ -242,7 +242,7 @@ static int capture_projectile(JungleStaticCore *n, JungleStaticCore *w,
   for (i = 0; i < 4; i++)
     if (count[i] && !(projectile_seen_mask & (1u << i))) {
       void *data;
-      size_t z = jungle_core_snapshot_size(n);
+      size_t z = guest_snapshot_size(n);
       projectile_seen_mask |= 1u << i;
       weapon_evidence[!strcmp(projectile_phase, "gun-x")       ? 0
                       : !strcmp(projectile_phase, "missile-a") ? 1
@@ -256,7 +256,7 @@ static int capture_projectile(JungleStaticCore *n, JungleStaticCore *w,
       if (!write_frame(n, path))
         return 0;
       data = malloc(z);
-      jungle_core_save_snapshot(n, data, z);
+      save_guest_snapshot(n, data, z);
       snprintf(path, sizeof(path), "%s/%s-projectile-edge-%u.snapshot", dir,
                projectile_phase, i);
       if (!save_bytes(path, data, z))
@@ -275,7 +275,7 @@ static int capture_projectile(JungleStaticCore *n, JungleStaticCore *w,
         raw_minx >= 0 && raw_miny >= 0 && raw_maxx <= JUNGLE_WIDE_WIDTH &&
         raw_maxy <= 284) {
       void *data;
-      size_t z = jungle_core_snapshot_size(n);
+      size_t z = guest_snapshot_size(n);
       projectile_visible_mask |= 1u << i;
       snprintf(path, sizeof(path), "%s/%s-projectile-visible-%u-wide.ppm", dir,
                projectile_phase, i);
@@ -286,7 +286,7 @@ static int capture_projectile(JungleStaticCore *n, JungleStaticCore *w,
       if (!write_frame(n, path))
         return 0;
       data = malloc(z);
-      jungle_core_save_snapshot(n, data, z);
+      save_guest_snapshot(n, data, z);
       snprintf(path, sizeof(path), "%s/%s-projectile-visible-%u.snapshot", dir,
                projectile_phase, i);
       if (!save_bytes(path, data, z))
@@ -331,7 +331,7 @@ int main(int argc, char **argv) {
   free(rom);
   if (!n || !w)
     return 2;
-  z = jungle_core_snapshot_size(n);
+  z = guest_snapshot_size(n);
   initial = malloc(z);
   a = malloc(z);
   b = malloc(z);
@@ -394,8 +394,8 @@ int main(int argc, char **argv) {
       printf("FAIL no ammunition decrease for %s\n", label);
       return 1;
     }
-    if (!jungle_core_save_snapshot(n, a, z) ||
-        !jungle_core_save_snapshot(w, b, z) || memcmp(a, b, z)) {
+    if (!save_guest_snapshot(n, a, z) ||
+        !save_guest_snapshot(w, b, z) || memcmp(a, b, z)) {
       puts("FAIL guest snapshots differ");
       return 1;
     }

@@ -25,7 +25,7 @@ int main(int argc, char **argv) {
   free(rom);
   if (!native || !wide)
     return 2;
-  size = jungle_core_snapshot_size(native);
+  size = guest_snapshot_size(native);
   snapshot = malloc(size);
   a = malloc(size);
   b = malloc(size);
@@ -74,8 +74,8 @@ int main(int argc, char **argv) {
         flight++;
       frame++;
     }
-    if (!jungle_core_save_snapshot(native, a, size) ||
-        !jungle_core_save_snapshot(wide, b, size) || memcmp(a, b, size))
+    if (!save_guest_snapshot(native, a, size) ||
+        !save_guest_snapshot(wide, b, size) || memcmp(a, b, size))
       return 1;
     snprintf(path, sizeof(path), "%s/%s.ppm", argv[4], label);
     if (!write_frame(wide, path))

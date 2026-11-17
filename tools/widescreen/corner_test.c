@@ -59,7 +59,7 @@ int main(int argc, char **argv) {
   free(rom);
   if (!n || !w || !probe)
     return 2;
-  z = jungle_core_snapshot_size(n);
+  z = guest_snapshot_size(n);
   initial = malloc(z);
   a = malloc(z);
   b = malloc(z);
@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
         unsigned k, t, best_motion = 90;
         motion = abs(dx) + 2 * abs(dy) > 300 ? 90 : 20;
         total = motion + 30;
-        if (!jungle_core_save_snapshot(n, a, z))
+        if (!save_guest_snapshot(n, a, z))
           return 1;
         for (k = 0; k < 24; k++) {
           int px, py;
@@ -182,7 +182,7 @@ int main(int argc, char **argv) {
                label, i, ramword(n, 0x40), ramword(n, 0x42),
                ramword(n, 0x1415c), ramword(n, 0x11132), ramword(n, 0xc0b));
       if (navigate && i % 1200 == 0) {
-        jungle_core_save_snapshot(n, a, z);
+        save_guest_snapshot(n, a, z);
         snprintf(path, sizeof(path), "%s/progress.snapshot", argv[4]);
         save_bytes(path, a, z);
         snprintf(path, sizeof(path), "%s/progress-wide.ppm", argv[4]);
@@ -208,8 +208,8 @@ int main(int argc, char **argv) {
         frames++;
       }
     }
-    if (!jungle_core_save_snapshot(n, a, z) ||
-        !jungle_core_save_snapshot(w, b, z) || memcmp(a, b, z))
+    if (!save_guest_snapshot(n, a, z) ||
+        !save_guest_snapshot(w, b, z) || memcmp(a, b, z))
       return 1;
     snprintf(path, sizeof(path), "%s/%s-native.ppm", argv[4], label);
     if (!write_frame(n, path))

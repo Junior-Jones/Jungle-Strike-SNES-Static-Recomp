@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(JungleStrikeStaticRecomp VERSION 1.1.0 LANGUAGES C CXX)
+project(JungleStrikeStaticRecomp VERSION 1.2.0 LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 17)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -17,6 +17,13 @@ set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/generated/scpu/static_c
   "js_v10_100_scpu_context_known=js_compact_base_context_known;js_static_dispatch_v10_100=js_compact_base_dispatch;js_static_step_v10_100=js_compact_base_step")
 
 add_library(jungle_static_core STATIC
+  runtime/gameplay_60.c
+  runtime/gameplay_lights_60.c
+  runtime/gameplay_water_60.c
+  runtime/presentation_snapshot.c
+  runtime/ui_60.c
+  runtime/mission_graphics_60.c
+  runtime/mission_batch_60.c
   runtime/v09c_cpu_support.c
   runtime/v06c_bus.c
   runtime/v09c_scheduler.c
@@ -26,6 +33,8 @@ add_library(jungle_static_core STATIC
   runtime/v10_40_machine.c
   runtime/v10_40_dispatch_bridge.c
   runtime/status_closure.c
+  runtime/vehicle_closure.c
+  runtime/end_closure.c
   runtime/v10_40_core_api.c
   runtime/v10_40_status.c
   runtime/widescreen.c

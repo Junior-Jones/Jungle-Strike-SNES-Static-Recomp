@@ -2,8 +2,10 @@
    No guest memory, timing, input, or executable authority is modified here. */
 #include "jungle/widescreen.h"
 #include "jungle/renderer_v10_30.h"
+#include "jungle/gameplay_water_60.h"
 #include <string.h>
 #include <stdlib.h>
+#include <limits.h>
 static int floor16(int value) {
   return value >= 0 ? value / 16 : (value - 15) / 16;
 }
@@ -152,37 +154,65 @@ static int terrain_column(JungleWideState *wide, const uint8_t *w,
   wide->column_key[slot] = x;
   return 1;
 }
-static js_stop_reason tile_pixel(const js_ppu_v09c *ppu, uint16_t raw,
+typedef struct WideTileRow {
+  uint16_t tile, base;
+  uint8_t y, valid, pixels[8];
+} WideTileRow;
+typedef struct WideRomRow {
+  unsigned bank, base;
+  uint8_t valid, pixels[8];
+} WideRomRow;
+/* Immutable PPU state permits lazy caching within one eight-pixel group.
+   Keep palette reads and priority validation in their original first-use order. */
+typedef struct WideTerrainRow {
+  uint16_t raw, base, colors[16], colors_valid;
+  uint8_t valid, fine_y, half_x, layer, hflip, palette, priority_bit;
+  uint8_t priority_valid, priority, pixels[8];
+} WideTerrainRow;
+static js_stop_reason tile_pixel(WideTerrainRow *cache,const js_ppu_v09c *ppu, uint16_t raw,
                                  unsigned fine_x, unsigned fine_y,
                                  unsigned layer, uint16_t *color,
-                                 uint8_t *priority) {
-  js_tilemap_entry_v10_28 entry;
-  js_bg_character_v10_28 chr;
-  uint8_t row[8];
+                                 uint8_t *priority, uint16_t *cgram_index) {
   js_stop_reason stop;
-  js_renderer_v10_28_decode_tilemap_entry(raw, &entry);
-  stop = js_renderer_v10_28_bg_resolve_character(&entry, 16u, (uint8_t)fine_x,
-                                                 (uint8_t)fine_y, &chr);
-  if (stop != JS_STOP_NONE)
-    return stop;
-  stop = js_renderer_v10_28_decode_tile_row(
-      ppu, ppu->layer[layer].chr_address, chr.tile_index, 4u, chr.pixel_y, row);
-  if (stop != JS_STOP_NONE)
-    return stop;
-  if (!row[chr.pixel_x]) {
-    *priority = 0u;
-    return JS_STOP_NONE;
+  unsigned index;
+  if (!cache->valid || cache->raw != raw || cache->fine_y != fine_y ||
+      cache->half_x != (fine_x & 8u) || cache->layer != layer ||
+      cache->base != ppu->layer[layer].chr_address) {
+    js_tilemap_entry_v10_28 entry;
+    js_bg_character_v10_28 chr;
+    js_renderer_v10_28_decode_tilemap_entry(raw, &entry);
+    stop = js_renderer_v10_28_bg_resolve_character(&entry,16u,
+             (uint8_t)(fine_x & 8u),(uint8_t)fine_y,&chr);
+    if (stop != JS_STOP_NONE) return stop;
+    stop = js_renderer_v10_28_decode_tile_row(ppu,ppu->layer[layer].chr_address,
+             chr.tile_index,4u,chr.pixel_y,cache->pixels);
+    if (stop != JS_STOP_NONE) return stop;
+    cache->raw=raw;cache->base=ppu->layer[layer].chr_address;
+    cache->fine_y=(uint8_t)fine_y;cache->half_x=(uint8_t)(fine_x&8u);
+    cache->layer=(uint8_t)layer;cache->hflip=entry.hflip;
+    cache->palette=entry.palette;cache->priority_bit=entry.priority;
+    cache->colors_valid=0u;cache->priority_valid=0u;cache->valid=1u;
   }
-  stop = js_renderer_v10_28_read_cgram_color(
-      ppu, (uint16_t)(entry.palette * 16u + row[chr.pixel_x]), color);
-  if (stop != JS_STOP_NONE)
-    return stop;
-  return js_renderer_v10_29_mode1_priority_slot(ppu, layer, entry.priority,
-                                                priority);
+  index=cache->pixels[cache->hflip ? 7u-(fine_x&7u) : fine_x&7u];
+  if (!index) { *priority=0u;return JS_STOP_NONE; }
+  *cgram_index=(uint16_t)(cache->palette*16u+index);
+  if (!(cache->colors_valid & (1u<<index))) {
+    stop=js_renderer_v10_28_read_cgram_color(ppu,*cgram_index,&cache->colors[index]);
+    if (stop != JS_STOP_NONE) return stop;
+    cache->colors_valid|=(uint16_t)(1u<<index);
+  }
+  *color=cache->colors[index];
+  if (!cache->priority_valid) {
+    stop=js_renderer_v10_29_mode1_priority_slot(ppu,layer,cache->priority_bit,&cache->priority);
+    if (stop != JS_STOP_NONE) return stop;
+    cache->priority_valid=1u;
+  }
+  *priority=cache->priority;
+  return JS_STOP_NONE;
 }
 /* The original uploader splits each 16x16 scenery tile into two 64-byte
    halves. $80:F8CF maps its frozen tile number to the cartridge byte offset. */
-static int scenery_pixel(const uint8_t *w, const uint8_t *rom, size_t size,
+static int scenery_pixel(WideRomRow *cache,const uint8_t *w, const uint8_t *rom, size_t size,
                          unsigned record, int tx, int ty, unsigned fx,
                          unsigned fy, uint16_t *cg, uint8_t *priority) {
   unsigned width = word(w, record + 16u), height = word(w, record + 18u),
@@ -205,12 +235,15 @@ static int scenery_pixel(const uint8_t *w, const uint8_t *rom, size_t size,
   bank = word(w, record + 26u) & 255u;
   ptr = word(w, record + 28u) + offset;
   base = ptr + (py / 8u) * 64u + (px / 8u) * 32u + (py & 7u) * 2u;
-  for (plane = 0u; plane < 4u; plane++) {
-    if (!rom_byte(rom, size, bank, base + (plane / 2u) * 16u + (plane & 1u),
-                  &bits))
-      return 0;
-    index |= ((bits >> (7u - (px & 7u))) & 1u) << plane;
+  if(!cache->valid||cache->bank!=bank||cache->base!=base){
+    unsigned x;uint8_t row[8]={0};
+    for (plane = 0u; plane < 4u; plane++) {
+      if (!rom_byte(rom, size, bank, base + (plane / 2u) * 16u + (plane & 1u),&bits))return 0;
+      for(x=0;x<8;x++)row[x]|=(uint8_t)(((bits>>(7u-x))&1u)<<plane);
+    }
+    memcpy(cache->pixels,row,8);cache->bank=bank;cache->base=base;cache->valid=1;
   }
+  index=cache->pixels[px&7u];
   if (!index)
     return 0;
   *cg = (uint16_t)(((raw >> 10u) & 7u) * 16u + index);
@@ -221,31 +254,28 @@ static int scenery_pixel(const uint8_t *w, const uint8_t *rom, size_t size,
    Match the displayed tilemap to the three possible producer origins rather
    than following an already advanced WRAM camera. This also works on old saves.
  */
-static uint16_t foreground_raw(const uint8_t *w, unsigned map, int tx, int ty) {
+/* Build exactly the cells sampled by the origin matcher. Visiting records in
+   native order preserves whole-cell replacement, including transparent cells.
+   This avoids scanning every scenery record separately for each candidate. */
+static void foreground_cells(const uint8_t *w,unsigned map,int origin_x,int origin_y,
+                              uint16_t cells[17][19]) {
   unsigned o;
-  uint16_t raw = 0u;
-  for (o = 0x111b2u; o + 0x4cu <= 0x20000u; o += 0x4cu) {
-    uint16_t flags = word(w, o);
-    int lx, ly;
-    unsigned width, height, addr;
-    if (!flags)
-      break;
-    if (flags & 4u)
-      continue;
-    if (((flags & 1u) != 0u) != (map == 0x400u))
-      continue;
-    lx = tx - (int)word(w, o + 8u);
-    ly = ty - (int)word(w, o + 10u);
-    width = word(w, o + 16u);
-    height = word(w, o + 18u);
-    if (lx < 0 || ly < 0 || (unsigned)lx >= width || (unsigned)ly >= height)
-      continue;
-    addr =
-        0xa000u + word(w, o + 20u) + ((unsigned)ly * width + (unsigned)lx) * 2u;
-    if (addr < 65535u)
-      raw = word(w, addr);
+  memset(cells,0,17u*19u*sizeof(uint16_t));
+  for(o=0x111b2u;o+0x4cu<=0x20000u;o+=0x4cu){
+    uint16_t flags=word(w,o);unsigned width,height;int rx,ry,left,right,top,bottom,x,y;
+    if(!flags)break;
+    if((flags&4u)||(((flags&1u)!=0u)!=(map==0x400u)))continue;
+    rx=word(w,o+8u);ry=word(w,o+10u);width=word(w,o+16u);height=word(w,o+18u);
+    left=rx>origin_x?rx:origin_x;right=rx+(int)width;
+    top=ry>origin_y?ry:origin_y;bottom=ry+(int)height;
+    if(right>origin_x+19)right=origin_x+19;
+    if(bottom>origin_y+17)bottom=origin_y+17;
+    for(y=top;y<bottom;y++)for(x=left;x<right;x++){
+      unsigned address=0xa000u+word(w,o+20u)+
+          ((unsigned)(y-ry)*width+(unsigned)(x-rx))*2u;
+      if(address<65535u)cells[y-origin_y][x-origin_x]=word(w,address);
+    }
   }
-  return raw;
 }
 static void foreground_origin(JungleWideState *wide, const js_ppu_v09c *p,
                               const uint8_t *w) {
@@ -253,6 +283,7 @@ static void foreground_origin(JungleWideState *wide, const js_ppu_v09c *p,
   unsigned x, y;
   int dx, dy, best = -100000;
   int origin_x = word(w, 0x38u), origin_y = word(w, 0x3au);
+  uint16_t cells[17][19];
   hash ^= (unsigned)origin_x | ((uint64_t)(unsigned)origin_y << 16u);
   hash *= 1099511628211ull;
   for (y = 0; y < 17u; y++)
@@ -268,6 +299,7 @@ static void foreground_origin(JungleWideState *wide, const js_ppu_v09c *p,
   wide->foreground_ready = 1;
   wide->foreground_x = origin_x;
   wide->foreground_y = origin_y;
+  foreground_cells(w,p->layer[0].tilemap_address,origin_x,origin_y,cells);
   for (dy = -1; dy <= 1; dy++)
     for (dx = -1; dx <= 1; dx++) {
       int score = 0;
@@ -278,9 +310,7 @@ static void foreground_origin(JungleWideState *wide, const js_ppu_v09c *p,
           uint16_t expected;
           if (!actual)
             continue;
-          expected = foreground_raw(w, p->layer[0].tilemap_address,
-                                    origin_x + dx + (int)x + 1,
-                                    origin_y + dy + (int)y + 1);
+          expected = cells[dy+(int)y+1][dx+(int)x+1];
           score += ((actual & 0xfff9u) == (expected & 0xfff9u)) ? 1 : -1;
         }
       /* On an empty plane keep the producer origin; there is no scenery to
@@ -298,13 +328,22 @@ static js_stop_reason render_row(JungleWideState *wide,
                                  const js_machine_v10_40 *m,
                                  const js_ppu_v09c *p, const uint8_t *rom,
                                  size_t size, int output_y,
-                                 const js_rgb8_v10_28 native[256]) {
+                                 const js_rgb8_v10_28 native[256],
+                                 const JungleWater60Palette *water) {
   int y = output_y + wide->render_shift_y;
   const uint8_t *w = m->bus.base.wram;
   js_obj_record_v10_28 sprites[128];
   int sprite_rows[128], sprite_columns[128];
   unsigned sprite_indices[128];
   unsigned count = 0u, records[512], record_count = 0u, x, i;
+  int last_foreground_tx = INT_MIN, last_foreground_ty = INT_MIN;
+  unsigned selected_foreground = 0u;
+  /* Caches are confined to one immutable scanline observation. */
+  WideTerrainRow terrain_row={0};
+  WideTileRow sprite_tile_rows[128]={{0}};
+  WideRomRow scenery_row={0};
+  uint32_t shaded[2][256];
+  uint8_t shaded_valid[2][32]={{0}};
   uint32_t *row =
       wide->work +
       (unsigned)(output_y + (int)JUNGLE_WIDE_MARGIN_Y) * JUNGLE_WIDE_WIDTH;
@@ -331,14 +370,28 @@ static js_stop_reason render_row(JungleWideState *wide,
     wide->map_base = word(w, 0x78u);
   }
   foreground_origin(wide, p, w);
-  if (p->main_screen_layers & 16u)
+  if (p->main_screen_layers & 16u) {
+    unsigned known;
+    int validate_all = p->oam_mode > 7u;
+    /* Preserve the original fail-closed OAM/size checks for partial states.
+       Normal gameplay has all 544 OAM bytes known; then an unseen sprite or
+       a row outside every supported OBJ height cannot contribute pixels. */
+    for (known = 0u; known < sizeof(p->oam_known); known++)
+      if (p->oam_known[known] != 0xffu) {
+        validate_all = 1;
+        break;
+      }
     for (i = 0u; i < 128u; i++) {
       js_obj_record_v10_28 obj;
       unsigned idx =
           (i + (p->oam_priority ? ((p->oam_ram_address >> 1u) & 127u) : 0u)) &
           127u;
-      js_stop_reason stop =
-          js_renderer_v10_28_decode_obj(p, (uint8_t)idx, &obj);
+      js_stop_reason stop;
+      if (!validate_all &&
+          (!wide->sprite_seen[idx] || y < wide->sprite_y[idx] ||
+           y >= wide->sprite_y[idx] + 64))
+        continue;
+      stop = js_renderer_v10_28_decode_obj(p, (uint8_t)idx, &obj);
       if (stop != JS_STOP_NONE)
         return stop;
       if (wide->sprite_seen[idx] && y >= wide->sprite_y[idx] &&
@@ -350,6 +403,7 @@ static js_stop_reason render_row(JungleWideState *wide,
         sprites[count++] = obj;
       }
     }
+  }
   for (i = 0x111b2u; i + 0x4cu <= 0x20000u && record_count < 512u; i += 0x4cu) {
     uint16_t flags = word(w, i);
     int oy, local_y;
@@ -366,7 +420,7 @@ static js_stop_reason render_row(JungleWideState *wide,
   }
   for (x = wide->clip_left; x < wide->clip_right; x++) {
     int sx = (int)x - (int)JUNGLE_WIDE_MARGIN + wide->render_shift_x, wx, wy;
-    uint16_t color = p->cgram[0];
+    uint16_t color = p->cgram[0],cgram_index=0u,main_color;
     uint8_t priority = 0u, source = 5u, palette = 0u;
     js_stop_reason stop;
     if (native && x >= JUNGLE_WIDE_MARGIN && x < JUNGLE_WIDE_MARGIN + 256u &&
@@ -384,15 +438,14 @@ static js_stop_reason render_row(JungleWideState *wide,
         wy < (int)word(w, 0x10f6au) &&
         terrain_column(wide, w, rom, size, wx / 16)) {
       uint16_t raw = wide->columns[(unsigned)(wx / 16) & 63u][wy / 16];
-      stop = tile_pixel(p, raw, (unsigned)wx & 15u, (unsigned)wy & 15u, 1u,
-                        &color, &priority);
+      stop = tile_pixel(&terrain_row,p, raw, (unsigned)wx & 15u, (unsigned)wy & 15u, 1u,
+                        &color, &priority, &cgram_index);
       if (stop != JS_STOP_NONE)
         return stop;
       if (priority)
         source = 1u;
     }
     if (p->main_screen_layers & 1u) {
-      unsigned selected = 0u;
       int px = sx + (int)p->layer[0].h_scroll;
       int py = (int)y + (int)p->layer[0].v_scroll;
       int world_tx =
@@ -402,25 +455,34 @@ static js_stop_reason render_row(JungleWideState *wide,
       uint8_t slot;
       /* The guest builds a tilemap, so later records replace whole cells,
          including transparent cells, rather than blending their pixels. */
-      for (i = 0u; i < record_count; i++) {
-        unsigned o = records[i];
-        int tx = world_tx - (int)word(w, o + 8u);
-        int ty = world_ty - (int)word(w, o + 10u);
-        if (tx >= 0 && ty >= 0 && (unsigned)tx < word(w, o + 16u) &&
-            (unsigned)ty < word(w, o + 18u))
-          selected = o;
+      /* The machine cannot advance during this row. Resolve the cell's
+         winning record once for its sixteen pixels, including transparent
+         replacement cells. The cache ends at this call, so raster changes
+         and the separately frozen border PPU retain their exact ownership. */
+      if (world_tx != last_foreground_tx || world_ty != last_foreground_ty) {
+        selected_foreground = 0u;
+        for (i = 0u; i < record_count; i++) {
+          unsigned o = records[i];
+          int tx = world_tx - (int)word(w, o + 8u);
+          int ty = world_ty - (int)word(w, o + 10u);
+          if (tx >= 0 && ty >= 0 && (unsigned)tx < word(w, o + 16u) &&
+              (unsigned)ty < word(w, o + 18u))
+            selected_foreground = o;
+        }
+        last_foreground_tx = world_tx;
+        last_foreground_ty = world_ty;
       }
-      if (selected &&
-          scenery_pixel(w, rom, size, selected,
-                        world_tx - (int)word(w, selected + 8u),
-                        world_ty - (int)word(w, selected + 10u),
+      if (selected_foreground &&
+          scenery_pixel(&scenery_row,w, rom, size, selected_foreground,
+                        world_tx - (int)word(w, selected_foreground + 8u),
+                        world_ty - (int)word(w, selected_foreground + 10u),
                         (unsigned)px & 15u, (unsigned)py & 15u, &cg, &slot) &&
           slot > priority) {
         stop = js_renderer_v10_28_read_cgram_color(p, cg, &color);
         if (stop != JS_STOP_NONE)
           return stop;
         priority = slot;
-        source = 0u;
+        source = 0u;cgram_index=cg;
       }
     }
 
@@ -429,7 +491,8 @@ static js_stop_reason render_row(JungleWideState *wide,
       int ox = sprite_columns[i], local;
       unsigned px, py;
       uint16_t tile, cg;
-      uint8_t indices[8], index, slot;
+      uint8_t index, slot;
+      WideTileRow *cache=&sprite_tile_rows[i];
       local = sx - ox;
       if (local < 0 || local >= obj->size.width)
         continue;
@@ -444,11 +507,13 @@ static js_stop_reason render_row(JungleWideState *wide,
           (uint8_t)(py / 8u), &tile);
       if (stop != JS_STOP_NONE)
         return stop;
-      stop = js_renderer_v10_28_decode_tile_row(p, tile, 0u, 4u,
-                                                (uint8_t)(py & 7u), indices);
-      if (stop != JS_STOP_NONE)
-        return stop;
-      index = indices[px & 7u];
+      if(!cache->valid||cache->tile!=tile||cache->y!=(py&7u)){
+        stop = js_renderer_v10_28_decode_tile_row(p, tile, 0u, 4u,
+                                                  (uint8_t)(py & 7u), cache->pixels);
+        if (stop != JS_STOP_NONE)return stop;
+        cache->valid=1;cache->tile=tile;cache->y=(uint8_t)(py&7u);
+      }
+      index = cache->pixels[px & 7u];
       if (!index)
         continue;
       slot = js_renderer_v10_30_obj_priority_slot(p, obj->priority);
@@ -458,23 +523,45 @@ static js_stop_reason render_row(JungleWideState *wide,
         if (stop != JS_STOP_NONE)
           return stop;
         priority = slot;
-        source = 4u;
+        source = 4u;cgram_index=cg;
         palette = obj->palette;
         wide->pixel_object[(unsigned)(output_y + 32) * JUNGLE_WIDE_WIDTH + x] =
             (uint8_t)(sprite_indices[i] + 1u);
       }
       break;
     }
-    if ((p->color_math_enabled & (1u << source)) &&
-        (source != 4u || palette >= 4u))
+    /* Winner selection, ownership, VRAM and CGRAM validation above remain
+       unconditional. Only pure final shading is reused within this row. */
+    {
+    unsigned math_on=(p->color_math_enabled & (1u << source)) &&
+                     (source != 4u || palette >= 4u);
+    unsigned cg_byte=cgram_index>>3u,cg_bit=1u<<(cgram_index&7u);
+    if (shaded_valid[math_on][cg_byte]&cg_bit) {
+      row[x]=shaded[math_on][cgram_index];
+      continue;
+    }
+    main_color=color;
+    if (math_on)
       color = js_renderer_v10_30_color_math(
           color, p->fixed_color, p->color_math_subtract, p->color_math_half);
     color = js_renderer_v10_30_apply_brightness(color, p->brightness);
     {
       js_rgb8_v10_28 rgb;
       js_renderer_v10_28_bgr555_to_rgb8(color, &rgb);
+      if(water&&cgram_index>=0x11u&&cgram_index<0x16u){
+        js_screen_pixel_v10_30 sample;
+        memset(&sample,0,sizeof(sample));sample.rgb=rgb;
+        sample.brightness=p->brightness;sample.forced_blank=p->forced_blank;
+        sample.main_pixel.bgr555=main_color;sample.main_pixel.cgram_index=cgram_index;
+        sample.sub_pixel.bgr555=p->fixed_color;sample.sub_pixel.cgram_index=0xffffu;
+        sample.color_math_applied=(uint8_t)math_on;
+        jungle_gameplay_water60_shade(water,p,&sample,&rgb);
+      }
       row[x] = 0xff000000u | ((uint32_t)rgb.r << 16) | ((uint32_t)rgb.g << 8) |
                rgb.b;
+      shaded[math_on][cgram_index]=row[x];
+      shaded_valid[math_on][cg_byte]|=(uint8_t)cg_bit;
+    }
     }
   }
   return JS_STOP_NONE;
@@ -486,7 +573,7 @@ static js_stop_reason render_row(JungleWideState *wide,
    native world image and OBJ ownership together; HUD composition follows. */
 static js_stop_reason clamp_view(JungleWideState *wide,
                                  const js_machine_v10_40 *m, const uint8_t *rom,
-                                 size_t size) {
+                                 size_t size, const JungleWater60Palette *water) {
   const uint8_t *w = m->bus.base.wram;
   int ox = (int)word(w, 0x40) - (int)JUNGLE_WIDE_MARGIN,
       oy = (int)word(w, 0x42) - 1 - 32;
@@ -543,7 +630,7 @@ static js_stop_reason clamp_view(JungleWideState *wide,
       wide->clip_right = dx > 0 ? JUNGLE_WIDE_WIDTH : left;
     } else
       continue;
-    s = render_row(wide, m, &wide->edge_ppu, rom, size, yy - 32, NULL);
+    s = render_row(wide, m, &wide->edge_ppu, rom, size, yy - 32, NULL, water);
     if (s != JS_STOP_NONE)
       return s;
   }
@@ -593,10 +680,11 @@ static void prepare_sprites(JungleWideState *wide, const js_ppu_v09c *p) {
     wide->sprite_seen[i] = 1;
   }
 }
-js_stop_reason jungle_wide_scanline(JungleWideState *wide,
+js_stop_reason jungle_wide_scanline_water(JungleWideState *wide,
                                     const js_machine_v10_40 *m,
                                     const uint8_t *rom, size_t size, unsigned y,
-                                    const js_rgb8_v10_28 native[256]) {
+                                    const js_rgb8_v10_28 native[256],
+                                    const JungleWater60Palette *water) {
   js_stop_reason stop;
   int extra;
   /* A restored snapshot can own a partial native frame. Host-only wide
@@ -613,7 +701,7 @@ js_stop_reason jungle_wide_scanline(JungleWideState *wide,
     wide->edge_ppu = m->ppu;
     prepare_sprites(wide, &m->ppu);
     for (extra = -(int)JUNGLE_WIDE_MARGIN_Y; extra < 0; extra++) {
-      stop = render_row(wide, m, &wide->edge_ppu, rom, size, extra, NULL);
+      stop = render_row(wide, m, &wide->edge_ppu, rom, size, extra, NULL, water);
       if (stop != JS_STOP_NONE)
         return stop;
     }
@@ -652,20 +740,20 @@ js_stop_reason jungle_wide_scanline(JungleWideState *wide,
   }
   /* Relocate visible HUD pixels; restore world beneath native blanking. */
   if (y >= 220u && wide->work_active && m->ppu.forced_blank)
-    stop = render_row(wide, m, &wide->edge_ppu, rom, size, (int)y, NULL);
+    stop = render_row(wide, m, &wide->edge_ppu, rom, size, (int)y, NULL, water);
   else
-    stop = render_row(wide, m, &m->ppu, rom, size, (int)y, native);
+    stop = render_row(wide, m, &m->ppu, rom, size, (int)y, native, water);
   if (stop != JS_STOP_NONE)
     return stop;
   if (y == 223u) {
     for (extra = 224; extra < 224 + (int)JUNGLE_WIDE_MARGIN_Y; extra++) {
-      stop = render_row(wide, m, &wide->edge_ppu, rom, size, extra, NULL);
+      stop = render_row(wide, m, &wide->edge_ppu, rom, size, extra, NULL, water);
       if (stop != JS_STOP_NONE)
         return stop;
     }
     if (wide->work_active) {
       unsigned row, x;
-      stop = clamp_view(wide, m, rom, size);
+      stop = clamp_view(wide, m, rom, size, water);
       if (stop != JS_STOP_NONE)
         return stop;
       for (row = 0; row < JUNGLE_WIDE_HUD_HEIGHT; row++)
@@ -710,13 +798,19 @@ js_stop_reason jungle_wide_scanline(JungleWideState *wide,
   return JS_STOP_NONE;
 }
 
-/* Snapshots retain the native image but intentionally omit host presentation
-   buffers. Rebuild those buffers from the frozen scene without running the
-   scheduler, changing guest memory, or changing the snapshot format. */
+js_stop_reason jungle_wide_scanline(JungleWideState *wide,const js_machine_v10_40 *m,
+    const uint8_t *rom,size_t size,unsigned y,const js_rgb8_v10_28 native[256]){
+  return jungle_wide_scanline_water(wide,m,rom,size,y,native,NULL);
+}
+
+/* Normal-aspect and legacy snapshots need expanded buffers reconstructed.
+   Reuse the completed image's latched palette, rather than recalculating the
+   next field's phase. Do not advance the scheduler or change guest memory. */
 void jungle_wide_restore_frame(JungleWideState *wide,
                               const js_machine_v10_40 *machine,
                               const uint8_t *rom, size_t size,
-                              const uint32_t native[256u * 224u]) {
+                              const uint32_t native[256u * 224u],
+                              const JungleWater60Palette *water) {
   js_machine_v10_40 *view;
   js_rgb8_v10_28 line[256];
   unsigned x, y;
@@ -741,7 +835,7 @@ void jungle_wide_restore_frame(JungleWideState *wide,
       line[x].g = (uint8_t)(pixel >> 8);
       line[x].b = (uint8_t)pixel;
     }
-    if (jungle_wide_scanline(wide, view, rom, size, y, line) != JS_STOP_NONE) {
+    if (jungle_wide_scanline_water(wide, view, rom, size, y, line, water) != JS_STOP_NONE) {
       jungle_wide_invalidate(wide);
       break;
     }

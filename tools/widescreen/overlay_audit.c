@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
       return 1;
     puts("PASS production authority counters without unsigned underflow");
   }
-  size = jungle_core_snapshot_size(n);
+  size = guest_snapshot_size(n);
   snapshot = malloc(size);
   a = malloc(size);
   b = malloc(size);
@@ -82,8 +82,8 @@ int main(int argc, char **argv) {
       jungle_core_take_audio(n, &audio);
       jungle_core_take_audio(w, &audio);
     }
-    if (!jungle_core_save_snapshot(n, a, size) ||
-        !jungle_core_save_snapshot(w, b, size) || memcmp(a, b, size) ||
+    if (!save_guest_snapshot(n, a, size) ||
+        !save_guest_snapshot(w, b, size) || memcmp(a, b, size) ||
         !jungle_core_get_frame(w, &frame))
       return 1;
     snprintf(path, sizeof(path), "%s/%s-native.ppm", argv[3],

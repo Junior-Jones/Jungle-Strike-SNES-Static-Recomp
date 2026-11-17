@@ -157,7 +157,8 @@ static js_stop_reason js_v09c_sync_start(js_dma_v09c *dma) {
 static js_stop_reason js_v09c_sync_end(js_dma_v09c *dma) {
     uint32_t speed, rem, align;
     if (!dma || !dma->scheduler) return JS_STOP_TIMING_UNAVAILABLE;
-    speed = dma->bus && dma->bus->cpu_speed_clocks ? dma->bus->cpu_speed_clocks : 6u;
+    speed = dma->bus ? dma->bus->cpu_speed_clocks&JS_V09C_CPU_CLOCK_MASK : 0u;
+    if(!speed)speed=6u;
     rem = dma->clock_counter % speed;
     align = speed - rem;
     /* The shared hardware DMA clock counter is used only to choose end alignment;
