@@ -803,13 +803,14 @@ js_stop_reason jungle_wide_scanline(JungleWideState *wide,const js_machine_v10_4
   return jungle_wide_scanline_water(wide,m,rom,size,y,native,NULL);
 }
 
-/* Snapshots retain the native image but intentionally omit host presentation
-   buffers. Rebuild those buffers from the frozen scene without running the
-   scheduler, changing guest memory, or changing the snapshot format. */
+/* Normal-aspect and legacy snapshots need expanded buffers reconstructed.
+   Reuse the completed image's latched palette, rather than recalculating the
+   next field's phase. Do not advance the scheduler or change guest memory. */
 void jungle_wide_restore_frame(JungleWideState *wide,
                               const js_machine_v10_40 *machine,
                               const uint8_t *rom, size_t size,
-                              const uint32_t native[256u * 224u]) {
+                              const uint32_t native[256u * 224u],
+                              const JungleWater60Palette *water) {
   js_machine_v10_40 *view;
   js_rgb8_v10_28 line[256];
   unsigned x, y;
@@ -834,7 +835,7 @@ void jungle_wide_restore_frame(JungleWideState *wide,
       line[x].g = (uint8_t)(pixel >> 8);
       line[x].b = (uint8_t)pixel;
     }
-    if (jungle_wide_scanline(wide, view, rom, size, y, line) != JS_STOP_NONE) {
+    if (jungle_wide_scanline_water(wide, view, rom, size, y, line, water) != JS_STOP_NONE) {
       jungle_wide_invalidate(wide);
       break;
     }
