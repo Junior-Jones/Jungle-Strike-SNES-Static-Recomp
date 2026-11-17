@@ -31,6 +31,7 @@
   ],
   "notes": "Version 1.2.0 adds optional experimental 60 FPS processing for previously slower game work and palette effects, retaining original timing, alongside normal 4:3 and optional 16:9 Widescreen. Each feature has one saved setting shared by its toolbar checkbox and Settings menu item.",
   "tags": [
-    "Shoot 'em up"
+    "Shoot 'em up",
+    "60 FPS"
   ]
 }
