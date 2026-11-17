@@ -33,6 +33,7 @@ typedef struct JungleWideState {
   int foreground_x, foreground_y, foreground_ready;
   uint64_t foreground_hash;
 } JungleWideState;
+struct JungleWater60Palette;
 void jungle_wide_invalidate(JungleWideState *wide);
 void jungle_wide_restore_frame(JungleWideState *wide,
                               const js_machine_v10_40 *machine,
@@ -46,4 +47,7 @@ js_stop_reason jungle_wide_scanline(JungleWideState *wide,
                                     const uint8_t *rom, size_t rom_size,
                                     unsigned y,
                                     const js_rgb8_v10_28 native[256]);
+js_stop_reason jungle_wide_scanline_water(JungleWideState *wide,
+    const js_machine_v10_40 *machine,const uint8_t *rom,size_t rom_size,
+    unsigned y,const js_rgb8_v10_28 native[256],const struct JungleWater60Palette *water);
 #endif

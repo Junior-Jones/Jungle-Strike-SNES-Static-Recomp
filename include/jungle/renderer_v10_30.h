@@ -49,12 +49,14 @@ typedef struct js_screen_plane_pixel_v10_30 {
     uint8_t priority_slot;
     uint8_t obj_palette;
     uint16_t bgr555;
+    uint16_t cgram_index;
 } js_screen_plane_pixel_v10_30;
 
 typedef struct js_screen_pixel_v10_30 {
     js_screen_plane_pixel_v10_30 main_pixel;
     js_screen_plane_pixel_v10_30 sub_pixel;
     uint8_t color_math_applied;
+    uint8_t color_clipped;
     uint8_t forced_blank;
     uint8_t brightness;
     uint16_t pre_brightness_bgr555;
@@ -79,6 +81,13 @@ js_stop_reason js_renderer_v10_30_render_source_pixel(js_ppu_v09c *ppu,
                                                        js_screen_pixel_v10_30 *pixel);
 js_stop_reason js_renderer_v10_30_render_source_scanline(js_ppu_v09c *ppu, uint16_t screen_y,
                                                           js_rgb8_v10_28 pixels[JS_V10_30_VISIBLE_WIDTH]);
+/* Optional stateless gameplay-water color interpolation. NULL preserves the
+   original native scanline path and all PPU evaluation/status side effects. */
+struct JungleWater60Palette;
+js_stop_reason js_renderer_v10_30_render_source_scanline_water(
+    js_ppu_v09c *ppu,uint16_t screen_y,
+    js_rgb8_v10_28 pixels[JS_V10_30_VISIBLE_WIDTH],
+    const struct JungleWater60Palette *water);
 #ifdef __cplusplus
 }
 #endif

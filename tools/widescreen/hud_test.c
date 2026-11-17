@@ -24,14 +24,14 @@ int main(int argc, char **argv) {
   free(rom);
   if (!c)
     return 2;
-  snapshot = malloc(jungle_core_snapshot_size(c));
+  snapshot = malloc(guest_snapshot_size(c));
   f = fopen(argv[2], "rb");
   if (!f || !snapshot ||
-      fread(snapshot, 1, jungle_core_snapshot_size(c), f) !=
-          jungle_core_snapshot_size(c))
+      fread(snapshot, 1, guest_snapshot_size(c), f) !=
+          guest_snapshot_size(c))
     return 2;
   fclose(f);
-  if (!jungle_core_load_snapshot(c, snapshot, jungle_core_snapshot_size(c)) ||
+  if (!jungle_core_load_snapshot(c, snapshot, guest_snapshot_size(c)) ||
       !jungle_core_set_widescreen(c, 1) || !jungle_core_run_frame(c, 0, 0))
     return 1;
   host = malloc(sizeof(*host));

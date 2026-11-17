@@ -6,15 +6,15 @@
 extern "C" {
 #endif
 
-#define JUNGLE_STATIC_CORE_VERSION_STRING "1.1.0"
+#define JUNGLE_STATIC_CORE_VERSION_STRING "1.2.0"
 #define JUNGLE_STATIC_CORE_ROM_SIZE 2097152u
 #define JUNGLE_STATIC_CORE_FRAME_WIDTH 256u
 #define JUNGLE_STATIC_CORE_FRAME_HEIGHT 224u
 #define JUNGLE_STATIC_CORE_AUDIO_CHANNELS 2u
 #define JUNGLE_STATIC_CORE_AUDIO_SAMPLE_RATE 32040u
 #define JUNGLE_STATIC_CORE_SEALED_CONTEXTS 27835u
-#define JUNGLE_STATIC_CORE_PRODUCTION_CONTEXTS 28636u
-#define JUNGLE_STATIC_CORE_PRODUCTION_ROM_BYTES 66177u
+#define JUNGLE_STATIC_CORE_PRODUCTION_CONTEXTS 28833u
+#define JUNGLE_STATIC_CORE_PRODUCTION_ROM_BYTES 66708u
 #define JUNGLE_STATIC_CORE_IMMUTABLE_DATA_BYTES 46386u
 #define JUNGLE_STATIC_CORE_ROM_SHA256 "8d812ea4fa897274116f7f43bc689e110f1cfbd3f7eb3a1737c2a85d36369159"
 
@@ -52,6 +52,21 @@ typedef struct JungleCoreFrame {
     uint32_t pitch_bytes;
     uint64_t frame_number;
 } JungleCoreFrame;
+
+/* Read-only, inexpensive capture history sample; not part of save-state ABI.
+   RAM fields are raw values. Availability flags guard actor/resource pointers. */
+typedef struct JungleCoreCaptureSample {
+    uint64_t machine_frame, displayed_frame, master_clock, retired;
+    uint16_t scanline, hclock, mission, gameplay_mode, ui_scene;
+    uint16_t player_pointer, resource_pointer, vehicle_class, heading;
+    int32_t x_fixed, y_fixed, z_fixed;
+    uint16_t camera_x, camera_y, armor, fuel, hellfire, hydra, gun, lives;
+    uint16_t physical_counter, publication_counter, contact_phase;
+    uint16_t input_serial, input_auto;
+    uint8_t actor_available, resources_available, experimental_60fps, widescreen;
+    uint8_t water_valid, water_phase, pending_ui_packets;
+} JungleCoreCaptureSample;
+int jungle_core_capture_sample(const JungleStaticCore *core,JungleCoreCaptureSample *out);
 
 typedef struct JungleCoreAudio {
     const int16_t *interleaved_stereo;
@@ -165,6 +180,8 @@ int jungle_core_run_frame_headless(JungleStaticCore *core,
                                    uint16_t player1_mask,
                                    uint16_t player2_mask);
 int jungle_core_widescreen_enabled(const JungleStaticCore *core);
+int jungle_core_experimental_60fps_enabled(const JungleStaticCore *core);
+int jungle_core_set_experimental_60fps(JungleStaticCore *core,int enabled);
 int jungle_core_set_widescreen(JungleStaticCore *core,int enabled);
 int jungle_core_get_frame(const JungleStaticCore *core, JungleCoreFrame *out_frame);
 int jungle_core_take_audio(JungleStaticCore *core, JungleCoreAudio *out_audio);
@@ -175,6 +192,8 @@ int jungle_core_failure(const JungleStaticCore *core, JungleCoreFailure *out_fai
    scheduler, DMA, PPU, input, S-SMP, S-DSP, ARAM and rendered-frame state.
    Host pointers and queued frontend PCM are excluded and rebound on load. */
 size_t jungle_core_snapshot_size(const JungleStaticCore *core);
+/* Load accepts legacy and enhanced states regardless of the current option. */
+int jungle_core_snapshot_size_supported(const JungleStaticCore *core,size_t size);
 int jungle_core_save_snapshot(const JungleStaticCore *core,
                               void *dst, size_t dst_size);
 int jungle_core_load_snapshot(JungleStaticCore *core,

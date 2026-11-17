@@ -1,0 +1,6352 @@
+{
+  "rom_sha256": "8d812ea4fa897274116f7f43bc689e110f1cfbd3f7eb3a1737c2a85d36369159",
+  "roots": [
+    "80:B055:E0M0X0",
+    "80:B107:E0M0X0",
+    "80:B091:E0M0X0",
+    "80:C17B:E0M0X0",
+    "80:C1CE:E0M0X0",
+    "80:C220:E0M0X0"
+  ],
+  "new_contexts": 186,
+  "new_unique_rom_bytes": 490,
+  "production_contexts": 28822,
+  "production_rom_bytes": 66667,
+  "indirect_tables": {
+    "80:ACB2": [
+      "80:AF8F",
+      "80:B055",
+      "80:B107",
+      "80:B091"
+    ],
+    "80:C121": [
+      "80:C129",
+      "80:C17B",
+      "80:C1CE",
+      "80:C220"
+    ]
+  },
+  "dispatch_edges": [
+    [
+      "80:ACAF:E0M0X0",
+      "80:B055:E0M0X0"
+    ],
+    [
+      "80:ACAF:E0M0X0",
+      "80:B107:E0M0X0"
+    ],
+    [
+      "80:ACAF:E0M0X0",
+      "80:B091:E0M0X0"
+    ],
+    [
+      "80:C11E:E0M0X0",
+      "80:C17B:E0M0X0"
+    ],
+    [
+      "80:C11E:E0M0X0",
+      "80:C1CE:E0M0X0"
+    ],
+    [
+      "80:C11E:E0M0X0",
+      "80:C220:E0M0X0"
+    ]
+  ],
+  "return_edges": [
+    [
+      "80:ADD3:E0M0X0",
+      "80:9C5B:E0M0X0"
+    ],
+    [
+      "80:C1CD:E0M0X0",
+      "80:9C70:E0M0X0"
+    ],
+    [
+      "80:C272:E0M0X0",
+      "80:9C70:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C18E:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C1A8:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C1BF:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C1E1:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C1FB:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C212:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C233:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C24D:E0M0X0"
+    ],
+    [
+      "80:C338:E0M0X0",
+      "80:C264:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C18E:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C1A8:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C1BF:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C1E1:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C1FB:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C212:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C233:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C24D:E0M0X0"
+    ],
+    [
+      "80:C33B:E0M0X0",
+      "80:C264:E0M0X0"
+    ],
+    [
+      "80:C46B:E0M0X0",
+      "80:9C70:E0M0X0"
+    ],
+    [
+      "80:C478:E0M0X0",
+      "80:9C70:E0M0X0"
+    ],
+    [
+      "80:C5A3:E0M0X0",
+      "80:9C70:E0M0X0"
+    ]
+  ],
+  "paired_return_callsite_proofs": [
+    "CALLSITE-80:C18B:E0M0X0",
+    "CALLSITE-80:C1A5:E0M0X0",
+    "CALLSITE-80:C1BC:E0M0X0",
+    "CALLSITE-80:C1DE:E0M0X0",
+    "CALLSITE-80:C1F8:E0M0X0",
+    "CALLSITE-80:C20F:E0M0X0",
+    "CALLSITE-80:C230:E0M0X0",
+    "CALLSITE-80:C24A:E0M0X0",
+    "CALLSITE-80:C261:E0M0X0"
+  ],
+  "return_proof": {
+    "player": "80:9C58 JSR A85F -> ACA1/ACAF tail -> ADD3 RTS ->9C5B",
+    "weapons": "80:9C6D JSR C119 -> C11E table tail -> native RTS ->9C70"
+  },
+  "frontiers": [
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:ADD3:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:ADD3:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:ADD3:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C1CD:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C1CD:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C1CD:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C1CD:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C272:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C272:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C46B:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C46B:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C46B:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C46B:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C46B:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C46B:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C478:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C478:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C478:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C478:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C478:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C478:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C5A3:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C5A3:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    },
+    {
+      "type": "RETURN_UNPAIRED",
+      "at_context": "80:C5A3:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "instruction": "RTS"
+    }
+  ],
+  "rows": [
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45141,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B055:E0M0X0"
+      },
+      "file_offsets": [
+        12373,
+        12374,
+        12375
+      ],
+      "bytes": "9CA80F",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B058:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45144,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B058:E0M0X0"
+      },
+      "file_offsets": [
+        12376,
+        12377
+      ],
+      "bytes": "A608",
+      "opcode": 166,
+      "mnemonic": "LDX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B05A:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45146,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B05A:E0M0X0"
+      },
+      "file_offsets": [
+        12378,
+        12379,
+        12380
+      ],
+      "bytes": "9CA211",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B05D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45149,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B05D:E0M0X0"
+      },
+      "file_offsets": [
+        12381,
+        12382
+      ],
+      "bytes": "A576",
+      "opcode": 165,
+      "mnemonic": "LDA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B05F:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45151,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B05F:E0M0X0"
+      },
+      "file_offsets": [
+        12383,
+        12384,
+        12385
+      ],
+      "bytes": "C91400",
+      "opcode": 201,
+      "mnemonic": "CMP",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B062:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45154,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B062:E0M0X0"
+      },
+      "file_offsets": [
+        12386,
+        12387
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B064:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B067:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45156,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B064:E0M0X0"
+      },
+      "file_offsets": [
+        12388,
+        12389,
+        12390
+      ],
+      "bytes": "CEA211",
+      "opcode": 206,
+      "mnemonic": "DEC",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B067:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45159,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B067:E0M0X0"
+      },
+      "file_offsets": [
+        12391,
+        12392,
+        12393
+      ],
+      "bytes": "9CE00F",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B06A:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45162,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B06A:E0M0X0"
+      },
+      "file_offsets": [
+        12394,
+        12395,
+        12396
+      ],
+      "bytes": "A9C000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B06D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45165,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B06D:E0M0X0"
+      },
+      "file_offsets": [
+        12397,
+        12398,
+        12399
+      ],
+      "bytes": "8DE20F",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B070:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45168,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B070:E0M0X0"
+      },
+      "file_offsets": [
+        12400,
+        12401,
+        12402
+      ],
+      "bytes": "A9489B",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B073:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45171,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B073:E0M0X0"
+      },
+      "file_offsets": [
+        12403,
+        12404,
+        12405
+      ],
+      "bytes": "8DA411",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B076:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45174,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B076:E0M0X0"
+      },
+      "file_offsets": [
+        12406,
+        12407,
+        12408
+      ],
+      "bytes": "A966BF",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B079:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45177,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B079:E0M0X0"
+      },
+      "file_offsets": [
+        12409,
+        12410
+      ],
+      "bytes": "851C",
+      "opcode": 133,
+      "mnemonic": "STA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B07B:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45179,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B07B:E0M0X0"
+      },
+      "file_offsets": [
+        12411,
+        12412,
+        12413
+      ],
+      "bytes": "AD7C11",
+      "opcode": 173,
+      "mnemonic": "LDA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B07E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45182,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B07E:E0M0X0"
+      },
+      "file_offsets": [
+        12414,
+        12415,
+        12416
+      ],
+      "bytes": "9D4E00",
+      "opcode": 157,
+      "mnemonic": "STA",
+      "mode": "abs_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B081:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45185,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B081:E0M0X0"
+      },
+      "file_offsets": [
+        12417,
+        12418
+      ],
+      "bytes": "A572",
+      "opcode": 165,
+      "mnemonic": "LDA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B083:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45187,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B083:E0M0X0"
+      },
+      "file_offsets": [
+        12419,
+        12420,
+        12421
+      ],
+      "bytes": "290400",
+      "opcode": 41,
+      "mnemonic": "AND",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B086:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45190,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B086:E0M0X0"
+      },
+      "file_offsets": [
+        12422,
+        12423
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B088:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B08B:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45192,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B088:E0M0X0"
+      },
+      "file_offsets": [
+        12424,
+        12425,
+        12426
+      ],
+      "bytes": "4CBAAC",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:ACBA:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45195,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B08B:E0M0X0"
+      },
+      "file_offsets": [
+        12427,
+        12428,
+        12429
+      ],
+      "bytes": "A0157F",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B08E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45198,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B08E:E0M0X0"
+      },
+      "file_offsets": [
+        12430,
+        12431,
+        12432
+      ],
+      "bytes": "4C48B1",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_B055"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:B148:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45201,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B091:E0M0X0"
+      },
+      "file_offsets": [
+        12433,
+        12434
+      ],
+      "bytes": "A608",
+      "opcode": 166,
+      "mnemonic": "LDX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B093:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45203,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B093:E0M0X0"
+      },
+      "file_offsets": [
+        12435,
+        12436,
+        12437,
+        12438
+      ],
+      "bytes": "AF760000",
+      "opcode": 175,
+      "mnemonic": "LDA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B097:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45207,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B097:E0M0X0"
+      },
+      "file_offsets": [
+        12439,
+        12440,
+        12441
+      ],
+      "bytes": "C90400",
+      "opcode": 201,
+      "mnemonic": "CMP",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B09A:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45210,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B09A:E0M0X0"
+      },
+      "file_offsets": [
+        12442,
+        12443
+      ],
+      "bytes": "D003",
+      "opcode": 208,
+      "mnemonic": "BNE",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B09C:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B09F:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45212,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B09C:E0M0X0"
+      },
+      "file_offsets": [
+        12444,
+        12445,
+        12446
+      ],
+      "bytes": "9CE00F",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B09F:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45215,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B09F:E0M0X0"
+      },
+      "file_offsets": [
+        12447,
+        12448,
+        12449
+      ],
+      "bytes": "9CA211",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0A2:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45218,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0A2:E0M0X0"
+      },
+      "file_offsets": [
+        12450,
+        12451,
+        12452
+      ],
+      "bytes": "9CA411",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0A5:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45221,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0A5:E0M0X0"
+      },
+      "file_offsets": [
+        12453,
+        12454,
+        12455
+      ],
+      "bytes": "A916C1",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0A8:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45224,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0A8:E0M0X0"
+      },
+      "file_offsets": [
+        12456,
+        12457
+      ],
+      "bytes": "851C",
+      "opcode": 133,
+      "mnemonic": "STA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0AA:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45226,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0AA:E0M0X0"
+      },
+      "file_offsets": [
+        12458,
+        12459,
+        12460
+      ],
+      "bytes": "A99105",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0AD:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45229,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0AD:E0M0X0"
+      },
+      "file_offsets": [
+        12461,
+        12462,
+        12463
+      ],
+      "bytes": "8DB441",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0B0:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45232,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0B0:E0M0X0"
+      },
+      "file_offsets": [
+        12464,
+        12465
+      ],
+      "bytes": "A576",
+      "opcode": 165,
+      "mnemonic": "LDA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0B2:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45234,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0B2:E0M0X0"
+      },
+      "file_offsets": [
+        12466,
+        12467,
+        12468
+      ],
+      "bytes": "C90400",
+      "opcode": 201,
+      "mnemonic": "CMP",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0B5:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45237,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0B5:E0M0X0"
+      },
+      "file_offsets": [
+        12469,
+        12470
+      ],
+      "bytes": "D044",
+      "opcode": 208,
+      "mnemonic": "BNE",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B0B7:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B0FB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45239,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0B7:E0M0X0"
+      },
+      "file_offsets": [
+        12471,
+        12472
+      ],
+      "bytes": "A536",
+      "opcode": 165,
+      "mnemonic": "LDA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0B9:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45241,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0B9:E0M0X0"
+      },
+      "file_offsets": [
+        12473,
+        12474,
+        12475
+      ],
+      "bytes": "890100",
+      "opcode": 137,
+      "mnemonic": "BIT",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0BC:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45244,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0BC:E0M0X0"
+      },
+      "file_offsets": [
+        12476,
+        12477
+      ],
+      "bytes": "F01D",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B0BE:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B0DB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45246,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0BE:E0M0X0"
+      },
+      "file_offsets": [
+        12478,
+        12479,
+        12480
+      ],
+      "bytes": "AD7841",
+      "opcode": 173,
+      "mnemonic": "LDA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0C1:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45249,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0C1:E0M0X0"
+      },
+      "file_offsets": [
+        12481,
+        12482,
+        12483
+      ],
+      "bytes": "C9F2FF",
+      "opcode": 201,
+      "mnemonic": "CMP",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0C4:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45252,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0C4:E0M0X0"
+      },
+      "file_offsets": [
+        12484,
+        12485
+      ],
+      "bytes": "F035",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B0C6:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B0FB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45254,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0C6:E0M0X0"
+      },
+      "file_offsets": [
+        12486,
+        12487,
+        12488
+      ],
+      "bytes": "A90045",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0C9:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45257,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0C9:E0M0X0"
+      },
+      "file_offsets": [
+        12489
+      ],
+      "bytes": "18",
+      "opcode": 24,
+      "mnemonic": "CLC",
+      "mode": "implied",
+      "length": 1,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0CA:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45258,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0CA:E0M0X0"
+      },
+      "file_offsets": [
+        12490,
+        12491,
+        12492
+      ],
+      "bytes": "6D7641",
+      "opcode": 109,
+      "mnemonic": "ADC",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0CD:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45261,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0CD:E0M0X0"
+      },
+      "file_offsets": [
+        12493,
+        12494,
+        12495
+      ],
+      "bytes": "8D7641",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0D0:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45264,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0D0:E0M0X0"
+      },
+      "file_offsets": [
+        12496,
+        12497,
+        12498
+      ],
+      "bytes": "A90000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0D3:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45267,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0D3:E0M0X0"
+      },
+      "file_offsets": [
+        12499,
+        12500,
+        12501
+      ],
+      "bytes": "6D7841",
+      "opcode": 109,
+      "mnemonic": "ADC",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0D6:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45270,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0D6:E0M0X0"
+      },
+      "file_offsets": [
+        12502,
+        12503,
+        12504
+      ],
+      "bytes": "8D7841",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0D9:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45273,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0D9:E0M0X0"
+      },
+      "file_offsets": [
+        12505,
+        12506
+      ],
+      "bytes": "8020",
+      "opcode": 128,
+      "mnemonic": "BRA",
+      "mode": "rel",
+      "length": 2,
+      "flow": "unconditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch",
+          "target": "80:B0FB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45275,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0DB:E0M0X0"
+      },
+      "file_offsets": [
+        12507,
+        12508,
+        12509
+      ],
+      "bytes": "890200",
+      "opcode": 137,
+      "mnemonic": "BIT",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0DE:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45278,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0DE:E0M0X0"
+      },
+      "file_offsets": [
+        12510,
+        12511
+      ],
+      "bytes": "F01B",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B0E0:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B0FB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45280,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0E0:E0M0X0"
+      },
+      "file_offsets": [
+        12512,
+        12513,
+        12514
+      ],
+      "bytes": "AD7841",
+      "opcode": 173,
+      "mnemonic": "LDA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0E3:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45283,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0E3:E0M0X0"
+      },
+      "file_offsets": [
+        12515,
+        12516,
+        12517
+      ],
+      "bytes": "C9E0FF",
+      "opcode": 201,
+      "mnemonic": "CMP",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0E6:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45286,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0E6:E0M0X0"
+      },
+      "file_offsets": [
+        12518,
+        12519
+      ],
+      "bytes": "9013",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B0E8:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B0FB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45288,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0E8:E0M0X0"
+      },
+      "file_offsets": [
+        12520,
+        12521,
+        12522
+      ],
+      "bytes": "AD7641",
+      "opcode": 173,
+      "mnemonic": "LDA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0EB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45291,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0EB:E0M0X0"
+      },
+      "file_offsets": [
+        12523
+      ],
+      "bytes": "38",
+      "opcode": 56,
+      "mnemonic": "SEC",
+      "mode": "implied",
+      "length": 1,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0EC:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45292,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0EC:E0M0X0"
+      },
+      "file_offsets": [
+        12524,
+        12525,
+        12526
+      ],
+      "bytes": "E90045",
+      "opcode": 233,
+      "mnemonic": "SBC",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0EF:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45295,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0EF:E0M0X0"
+      },
+      "file_offsets": [
+        12527,
+        12528,
+        12529
+      ],
+      "bytes": "8D7641",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0F2:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45298,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0F2:E0M0X0"
+      },
+      "file_offsets": [
+        12530,
+        12531,
+        12532
+      ],
+      "bytes": "AD7841",
+      "opcode": 173,
+      "mnemonic": "LDA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0F5:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45301,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0F5:E0M0X0"
+      },
+      "file_offsets": [
+        12533,
+        12534,
+        12535
+      ],
+      "bytes": "E90000",
+      "opcode": 233,
+      "mnemonic": "SBC",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0F8:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45304,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0F8:E0M0X0"
+      },
+      "file_offsets": [
+        12536,
+        12537,
+        12538
+      ],
+      "bytes": "8D7841",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0FB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45307,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0FB:E0M0X0"
+      },
+      "file_offsets": [
+        12539,
+        12540
+      ],
+      "bytes": "A572",
+      "opcode": 165,
+      "mnemonic": "LDA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B0FD:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45309,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B0FD:E0M0X0"
+      },
+      "file_offsets": [
+        12541,
+        12542,
+        12543
+      ],
+      "bytes": "291F00",
+      "opcode": 41,
+      "mnemonic": "AND",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B100:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45312,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B100:E0M0X0"
+      },
+      "file_offsets": [
+        12544,
+        12545
+      ],
+      "bytes": "D067",
+      "opcode": 208,
+      "mnemonic": "BNE",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B102:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B169:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45314,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B102:E0M0X0"
+      },
+      "file_offsets": [
+        12546,
+        12547,
+        12548
+      ],
+      "bytes": "A0147F",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B105:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45317,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B105:E0M0X0"
+      },
+      "file_offsets": [
+        12549,
+        12550
+      ],
+      "bytes": "8041",
+      "opcode": 128,
+      "mnemonic": "BRA",
+      "mode": "rel",
+      "length": 2,
+      "flow": "unconditional_branch",
+      "roots": [
+        "vehicle_B091"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch",
+          "target": "80:B148:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45319,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B107:E0M0X0"
+      },
+      "file_offsets": [
+        12551,
+        12552
+      ],
+      "bytes": "A608",
+      "opcode": 166,
+      "mnemonic": "LDX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B109:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45321,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B109:E0M0X0"
+      },
+      "file_offsets": [
+        12553,
+        12554,
+        12555
+      ],
+      "bytes": "A9FFFF",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B10C:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45324,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B10C:E0M0X0"
+      },
+      "file_offsets": [
+        12556,
+        12557,
+        12558
+      ],
+      "bytes": "8DE00F",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B10F:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45327,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B10F:E0M0X0"
+      },
+      "file_offsets": [
+        12559,
+        12560,
+        12561
+      ],
+      "bytes": "8DA211",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B112:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45330,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B112:E0M0X0"
+      },
+      "file_offsets": [
+        12562,
+        12563,
+        12564
+      ],
+      "bytes": "A9089C",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B115:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45333,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B115:E0M0X0"
+      },
+      "file_offsets": [
+        12565,
+        12566,
+        12567
+      ],
+      "bytes": "8DA411",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B118:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45336,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B118:E0M0X0"
+      },
+      "file_offsets": [
+        12568,
+        12569,
+        12570
+      ],
+      "bytes": "A9C000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B11B:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45339,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B11B:E0M0X0"
+      },
+      "file_offsets": [
+        12571,
+        12572,
+        12573
+      ],
+      "bytes": "8DE20F",
+      "opcode": 141,
+      "mnemonic": "STA",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B11E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45342,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B11E:E0M0X0"
+      },
+      "file_offsets": [
+        12574,
+        12575,
+        12576
+      ],
+      "bytes": "A9B6BD",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B121:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45345,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B121:E0M0X0"
+      },
+      "file_offsets": [
+        12577,
+        12578
+      ],
+      "bytes": "851C",
+      "opcode": 133,
+      "mnemonic": "STA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B123:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45347,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B123:E0M0X0"
+      },
+      "file_offsets": [
+        12579,
+        12580,
+        12581
+      ],
+      "bytes": "A00000",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B126:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45350,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B126:E0M0X0"
+      },
+      "file_offsets": [
+        12582,
+        12583,
+        12584
+      ],
+      "bytes": "BD1E00",
+      "opcode": 189,
+      "mnemonic": "LDA",
+      "mode": "abs_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B129:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45353,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B129:E0M0X0"
+      },
+      "file_offsets": [
+        12585,
+        12586
+      ],
+      "bytes": "300A",
+      "opcode": 48,
+      "mnemonic": "BMI",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B12B:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B135:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45355,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B12B:E0M0X0"
+      },
+      "file_offsets": [
+        12587,
+        12588,
+        12589
+      ],
+      "bytes": "C91000",
+      "opcode": 201,
+      "mnemonic": "CMP",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B12E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45358,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B12E:E0M0X0"
+      },
+      "file_offsets": [
+        12590,
+        12591
+      ],
+      "bytes": "900D",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B130:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B13D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45360,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B130:E0M0X0"
+      },
+      "file_offsets": [
+        12592,
+        12593,
+        12594
+      ],
+      "bytes": "A01800",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B133:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45363,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B133:E0M0X0"
+      },
+      "file_offsets": [
+        12595,
+        12596
+      ],
+      "bytes": "8008",
+      "opcode": 128,
+      "mnemonic": "BRA",
+      "mode": "rel",
+      "length": 2,
+      "flow": "unconditional_branch",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch",
+          "target": "80:B13D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45365,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B135:E0M0X0"
+      },
+      "file_offsets": [
+        12597,
+        12598,
+        12599
+      ],
+      "bytes": "C9F0FF",
+      "opcode": 201,
+      "mnemonic": "CMP",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B138:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45368,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B138:E0M0X0"
+      },
+      "file_offsets": [
+        12600,
+        12601
+      ],
+      "bytes": "B003",
+      "opcode": 176,
+      "mnemonic": "BCS",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:B13A:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:B13D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45370,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B13A:E0M0X0"
+      },
+      "file_offsets": [
+        12602,
+        12603,
+        12604
+      ],
+      "bytes": "A03000",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B13D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45373,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B13D:E0M0X0"
+      },
+      "file_offsets": [
+        12605
+      ],
+      "bytes": "98",
+      "opcode": 152,
+      "mnemonic": "TYA",
+      "mode": "implied",
+      "length": 1,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B13E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45374,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B13E:E0M0X0"
+      },
+      "file_offsets": [
+        12606
+      ],
+      "bytes": "18",
+      "opcode": 24,
+      "mnemonic": "CLC",
+      "mode": "implied",
+      "length": 1,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B13F:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45375,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B13F:E0M0X0"
+      },
+      "file_offsets": [
+        12607,
+        12608,
+        12609
+      ],
+      "bytes": "69A404",
+      "opcode": 105,
+      "mnemonic": "ADC",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B142:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45378,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B142:E0M0X0"
+      },
+      "file_offsets": [
+        12610,
+        12611,
+        12612
+      ],
+      "bytes": "9D4E00",
+      "opcode": 157,
+      "mnemonic": "STA",
+      "mode": "abs_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B145:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 45381,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:B145:E0M0X0"
+      },
+      "file_offsets": [
+        12613,
+        12614,
+        12615
+      ],
+      "bytes": "A0167F",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_B107"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:B148:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49531,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C17B:E0M0X0"
+      },
+      "file_offsets": [
+        16763,
+        16764,
+        16765
+      ],
+      "bytes": "A90000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C17E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49534,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C17E:E0M0X0"
+      },
+      "file_offsets": [
+        16766,
+        16767,
+        16768,
+        16769
+      ],
+      "bytes": "8FB0117F",
+      "opcode": 143,
+      "mnemonic": "STA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C182:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49538,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C182:E0M0X0"
+      },
+      "file_offsets": [
+        16770,
+        16771,
+        16772
+      ],
+      "bytes": "9CEE08",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C185:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49541,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C185:E0M0X0"
+      },
+      "file_offsets": [
+        16773,
+        16774,
+        16775
+      ],
+      "bytes": "A91400",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C188:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49544,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C188:E0M0X0"
+      },
+      "file_offsets": [
+        16776,
+        16777,
+        16778
+      ],
+      "bytes": "A0E191",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C18B:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49547,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C18B:E0M0X0"
+      },
+      "file_offsets": [
+        16779,
+        16780,
+        16781
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49550,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C18E:E0M0X0"
+      },
+      "file_offsets": [
+        16782,
+        16783
+      ],
+      "bytes": "900C",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C190:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C19C:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49552,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C190:E0M0X0"
+      },
+      "file_offsets": [
+        16784,
+        16785
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C192:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49554,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C192:E0M0X0"
+      },
+      "file_offsets": [
+        16786,
+        16787
+      ],
+      "bytes": "A52A",
+      "opcode": 165,
+      "mnemonic": "LDA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C194:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49556,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C194:E0M0X0"
+      },
+      "file_offsets": [
+        16788,
+        16789,
+        16790
+      ],
+      "bytes": "294000",
+      "opcode": 41,
+      "mnemonic": "AND",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C197:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49559,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C197:E0M0X0"
+      },
+      "file_offsets": [
+        16791,
+        16792
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C199:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C19C:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49561,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C199:E0M0X0"
+      },
+      "file_offsets": [
+        16793,
+        16794,
+        16795
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49564,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C19C:E0M0X0"
+      },
+      "file_offsets": [
+        16796,
+        16797,
+        16798
+      ],
+      "bytes": "EEEE08",
+      "opcode": 238,
+      "mnemonic": "INC",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C19F:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49567,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C19F:E0M0X0"
+      },
+      "file_offsets": [
+        16799,
+        16800,
+        16801
+      ],
+      "bytes": "A91200",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1A2:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49570,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1A2:E0M0X0"
+      },
+      "file_offsets": [
+        16802,
+        16803,
+        16804
+      ],
+      "bytes": "A09592",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1A5:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49573,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1A5:E0M0X0"
+      },
+      "file_offsets": [
+        16805,
+        16806,
+        16807
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49576,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1A8:E0M0X0"
+      },
+      "file_offsets": [
+        16808,
+        16809
+      ],
+      "bytes": "900C",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C1AA:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C1B6:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49578,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1AA:E0M0X0"
+      },
+      "file_offsets": [
+        16810,
+        16811
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1AC:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49580,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1AC:E0M0X0"
+      },
+      "file_offsets": [
+        16812,
+        16813,
+        16814
+      ],
+      "bytes": "A90040",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1AF:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49583,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1AF:E0M0X0"
+      },
+      "file_offsets": [
+        16815,
+        16816
+      ],
+      "bytes": "142C",
+      "opcode": 20,
+      "mnemonic": "TRB",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1B1:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49585,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1B1:E0M0X0"
+      },
+      "file_offsets": [
+        16817,
+        16818
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C1B3:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C1B6:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49587,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1B3:E0M0X0"
+      },
+      "file_offsets": [
+        16819,
+        16820,
+        16821
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49590,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1B6:E0M0X0"
+      },
+      "file_offsets": [
+        16822,
+        16823,
+        16824
+      ],
+      "bytes": "A91000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1B9:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49593,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1B9:E0M0X0"
+      },
+      "file_offsets": [
+        16825,
+        16826,
+        16827
+      ],
+      "bytes": "A0B392",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1BC:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49596,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1BC:E0M0X0"
+      },
+      "file_offsets": [
+        16828,
+        16829,
+        16830
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49599,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1BF:E0M0X0"
+      },
+      "file_offsets": [
+        16831,
+        16832
+      ],
+      "bytes": "900C",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C1C1:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C1CD:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49601,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1C1:E0M0X0"
+      },
+      "file_offsets": [
+        16833,
+        16834
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1C3:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49603,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1C3:E0M0X0"
+      },
+      "file_offsets": [
+        16835,
+        16836,
+        16837
+      ],
+      "bytes": "A98000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1C6:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49606,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1C6:E0M0X0"
+      },
+      "file_offsets": [
+        16838,
+        16839
+      ],
+      "bytes": "142C",
+      "opcode": 20,
+      "mnemonic": "TRB",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1C8:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49608,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1C8:E0M0X0"
+      },
+      "file_offsets": [
+        16840,
+        16841
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C1CA:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C1CD:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49610,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1CA:E0M0X0"
+      },
+      "file_offsets": [
+        16842,
+        16843,
+        16844
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C17B"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49614,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1CE:E0M0X0"
+      },
+      "file_offsets": [
+        16846,
+        16847,
+        16848
+      ],
+      "bytes": "A90000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1D1:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49617,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1D1:E0M0X0"
+      },
+      "file_offsets": [
+        16849,
+        16850,
+        16851,
+        16852
+      ],
+      "bytes": "8FB0117F",
+      "opcode": 143,
+      "mnemonic": "STA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1D5:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49621,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1D5:E0M0X0"
+      },
+      "file_offsets": [
+        16853,
+        16854,
+        16855
+      ],
+      "bytes": "9CEE08",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1D8:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49624,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1D8:E0M0X0"
+      },
+      "file_offsets": [
+        16856,
+        16857,
+        16858
+      ],
+      "bytes": "A91400",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1DB:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49627,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1DB:E0M0X0"
+      },
+      "file_offsets": [
+        16859,
+        16860,
+        16861
+      ],
+      "bytes": "A0EF92",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1DE:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49630,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1DE:E0M0X0"
+      },
+      "file_offsets": [
+        16862,
+        16863,
+        16864
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49633,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1E1:E0M0X0"
+      },
+      "file_offsets": [
+        16865,
+        16866
+      ],
+      "bytes": "900C",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C1E3:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C1EF:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49635,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1E3:E0M0X0"
+      },
+      "file_offsets": [
+        16867,
+        16868
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1E5:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49637,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1E5:E0M0X0"
+      },
+      "file_offsets": [
+        16869,
+        16870
+      ],
+      "bytes": "A52A",
+      "opcode": 165,
+      "mnemonic": "LDA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1E7:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49639,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1E7:E0M0X0"
+      },
+      "file_offsets": [
+        16871,
+        16872,
+        16873
+      ],
+      "bytes": "294000",
+      "opcode": 41,
+      "mnemonic": "AND",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1EA:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49642,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1EA:E0M0X0"
+      },
+      "file_offsets": [
+        16874,
+        16875
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C1EC:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C1EF:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49644,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1EC:E0M0X0"
+      },
+      "file_offsets": [
+        16876,
+        16877,
+        16878
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49647,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1EF:E0M0X0"
+      },
+      "file_offsets": [
+        16879,
+        16880,
+        16881
+      ],
+      "bytes": "EEEE08",
+      "opcode": 238,
+      "mnemonic": "INC",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1F2:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49650,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1F2:E0M0X0"
+      },
+      "file_offsets": [
+        16882,
+        16883,
+        16884
+      ],
+      "bytes": "A91200",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1F5:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49653,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1F5:E0M0X0"
+      },
+      "file_offsets": [
+        16885,
+        16886,
+        16887
+      ],
+      "bytes": "A0D192",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1F8:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49656,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1F8:E0M0X0"
+      },
+      "file_offsets": [
+        16888,
+        16889,
+        16890
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49659,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1FB:E0M0X0"
+      },
+      "file_offsets": [
+        16891,
+        16892
+      ],
+      "bytes": "900C",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C1FD:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C209:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49661,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1FD:E0M0X0"
+      },
+      "file_offsets": [
+        16893,
+        16894
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C1FF:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49663,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C1FF:E0M0X0"
+      },
+      "file_offsets": [
+        16895,
+        16896,
+        16897
+      ],
+      "bytes": "A90040",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C202:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49666,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C202:E0M0X0"
+      },
+      "file_offsets": [
+        16898,
+        16899
+      ],
+      "bytes": "142C",
+      "opcode": 20,
+      "mnemonic": "TRB",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C204:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49668,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C204:E0M0X0"
+      },
+      "file_offsets": [
+        16900,
+        16901
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C206:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C209:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49670,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C206:E0M0X0"
+      },
+      "file_offsets": [
+        16902,
+        16903,
+        16904
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49673,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C209:E0M0X0"
+      },
+      "file_offsets": [
+        16905,
+        16906,
+        16907
+      ],
+      "bytes": "A91000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C20C:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49676,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C20C:E0M0X0"
+      },
+      "file_offsets": [
+        16908,
+        16909,
+        16910
+      ],
+      "bytes": "A0B392",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C20F:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49679,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C20F:E0M0X0"
+      },
+      "file_offsets": [
+        16911,
+        16912,
+        16913
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49682,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C212:E0M0X0"
+      },
+      "file_offsets": [
+        16914,
+        16915
+      ],
+      "bytes": "90B9",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C214:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C1CD:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49684,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C214:E0M0X0"
+      },
+      "file_offsets": [
+        16916,
+        16917
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C216:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49686,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C216:E0M0X0"
+      },
+      "file_offsets": [
+        16918,
+        16919,
+        16920
+      ],
+      "bytes": "A98000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C219:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49689,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C219:E0M0X0"
+      },
+      "file_offsets": [
+        16921,
+        16922
+      ],
+      "bytes": "142C",
+      "opcode": 20,
+      "mnemonic": "TRB",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C21B:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49691,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C21B:E0M0X0"
+      },
+      "file_offsets": [
+        16923,
+        16924
+      ],
+      "bytes": "F0B0",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C21D:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C1CD:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49693,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C21D:E0M0X0"
+      },
+      "file_offsets": [
+        16925,
+        16926,
+        16927
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C1CE"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49696,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C220:E0M0X0"
+      },
+      "file_offsets": [
+        16928,
+        16929,
+        16930
+      ],
+      "bytes": "A9FFFF",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C223:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49699,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C223:E0M0X0"
+      },
+      "file_offsets": [
+        16931,
+        16932,
+        16933,
+        16934
+      ],
+      "bytes": "8FB0117F",
+      "opcode": 143,
+      "mnemonic": "STA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C227:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49703,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C227:E0M0X0"
+      },
+      "file_offsets": [
+        16935,
+        16936,
+        16937
+      ],
+      "bytes": "9CEE08",
+      "opcode": 156,
+      "mnemonic": "STZ",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C22A:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49706,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C22A:E0M0X0"
+      },
+      "file_offsets": [
+        16938,
+        16939,
+        16940
+      ],
+      "bytes": "A91400",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C22D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49709,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C22D:E0M0X0"
+      },
+      "file_offsets": [
+        16941,
+        16942,
+        16943
+      ],
+      "bytes": "A01D92",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C230:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49712,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C230:E0M0X0"
+      },
+      "file_offsets": [
+        16944,
+        16945,
+        16946
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49715,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C233:E0M0X0"
+      },
+      "file_offsets": [
+        16947,
+        16948
+      ],
+      "bytes": "900C",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C235:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C241:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49717,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C235:E0M0X0"
+      },
+      "file_offsets": [
+        16949,
+        16950
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C237:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49719,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C237:E0M0X0"
+      },
+      "file_offsets": [
+        16951,
+        16952
+      ],
+      "bytes": "A52A",
+      "opcode": 165,
+      "mnemonic": "LDA",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C239:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49721,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C239:E0M0X0"
+      },
+      "file_offsets": [
+        16953,
+        16954,
+        16955
+      ],
+      "bytes": "294000",
+      "opcode": 41,
+      "mnemonic": "AND",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C23C:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49724,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C23C:E0M0X0"
+      },
+      "file_offsets": [
+        16956,
+        16957
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C23E:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C241:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49726,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C23E:E0M0X0"
+      },
+      "file_offsets": [
+        16958,
+        16959,
+        16960
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49729,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C241:E0M0X0"
+      },
+      "file_offsets": [
+        16961,
+        16962,
+        16963
+      ],
+      "bytes": "EEEE08",
+      "opcode": 238,
+      "mnemonic": "INC",
+      "mode": "abs",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C244:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49732,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C244:E0M0X0"
+      },
+      "file_offsets": [
+        16964,
+        16965,
+        16966
+      ],
+      "bytes": "A91200",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C247:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49735,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C247:E0M0X0"
+      },
+      "file_offsets": [
+        16967,
+        16968,
+        16969
+      ],
+      "bytes": "A03B92",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C24A:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49738,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C24A:E0M0X0"
+      },
+      "file_offsets": [
+        16970,
+        16971,
+        16972
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49741,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C24D:E0M0X0"
+      },
+      "file_offsets": [
+        16973,
+        16974
+      ],
+      "bytes": "900C",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C24F:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C25B:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49743,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C24F:E0M0X0"
+      },
+      "file_offsets": [
+        16975,
+        16976
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C251:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49745,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C251:E0M0X0"
+      },
+      "file_offsets": [
+        16977,
+        16978,
+        16979
+      ],
+      "bytes": "A90040",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C254:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49748,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C254:E0M0X0"
+      },
+      "file_offsets": [
+        16980,
+        16981
+      ],
+      "bytes": "142C",
+      "opcode": 20,
+      "mnemonic": "TRB",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C256:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49750,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C256:E0M0X0"
+      },
+      "file_offsets": [
+        16982,
+        16983
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C258:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C25B:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49752,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C258:E0M0X0"
+      },
+      "file_offsets": [
+        16984,
+        16985,
+        16986
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49755,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C25B:E0M0X0"
+      },
+      "file_offsets": [
+        16987,
+        16988,
+        16989
+      ],
+      "bytes": "A91000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C25E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49758,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C25E:E0M0X0"
+      },
+      "file_offsets": [
+        16990,
+        16991,
+        16992
+      ],
+      "bytes": "A07792",
+      "opcode": 160,
+      "mnemonic": "LDY",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C261:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49761,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C261:E0M0X0"
+      },
+      "file_offsets": [
+        16993,
+        16994,
+        16995
+      ],
+      "bytes": "2073C2",
+      "opcode": 32,
+      "mnemonic": "JSR",
+      "mode": "abs",
+      "length": 3,
+      "flow": "call",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "80:C273:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49764,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C264:E0M0X0"
+      },
+      "file_offsets": [
+        16996,
+        16997
+      ],
+      "bytes": "900C",
+      "opcode": 144,
+      "mnemonic": "BCC",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C266:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C272:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49766,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C266:E0M0X0"
+      },
+      "file_offsets": [
+        16998,
+        16999
+      ],
+      "bytes": "8626",
+      "opcode": 134,
+      "mnemonic": "STX",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C268:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49768,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C268:E0M0X0"
+      },
+      "file_offsets": [
+        17000,
+        17001,
+        17002
+      ],
+      "bytes": "A98000",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C26B:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49771,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C26B:E0M0X0"
+      },
+      "file_offsets": [
+        17003,
+        17004
+      ],
+      "bytes": "142C",
+      "opcode": 20,
+      "mnemonic": "TRB",
+      "mode": "direct",
+      "length": 2,
+      "flow": "fallthrough",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:C26D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49773,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C26D:E0M0X0"
+      },
+      "file_offsets": [
+        17005,
+        17006
+      ],
+      "bytes": "F003",
+      "opcode": 240,
+      "mnemonic": "BEQ",
+      "mode": "rel",
+      "length": 2,
+      "flow": "conditional_branch",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "branch_not_taken",
+          "target": "80:C26F:E0M0X0",
+          "proof_id": ""
+        },
+        {
+          "kind": "branch_taken",
+          "target": "80:C272:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49775,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C26F:E0M0X0"
+      },
+      "file_offsets": [
+        17007,
+        17008,
+        17009
+      ],
+      "bytes": "4C52C4",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:C452:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 49778,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:C272:E0M0X0"
+      },
+      "file_offsets": [
+        17010
+      ],
+      "bytes": "60",
+      "opcode": 96,
+      "mnemonic": "RTS",
+      "mode": "stack",
+      "length": 1,
+      "flow": "return",
+      "roots": [
+        "vehicle_C220"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "return",
+          "target": "80:9C70:E0M0X0",
+          "proof_id": "ROM-9C6D-JSR-C119-C11E-TAIL"
+        }
+      ]
+    }
+  ],
+  "runtime_decoding": false,
+  "native_source_sha256": "3848debd35abf5e9c25f7070f1d719c39d86ea7f62e350b265ae496b7397324a"
+}

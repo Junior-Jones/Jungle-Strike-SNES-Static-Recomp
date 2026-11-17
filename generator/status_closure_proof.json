@@ -144,6 +144,18 @@
   "production_rom_bytes": 66177,
   "return_edges": [
     [
+      "80:9786:E0M0X0",
+      "80:9667:E0M0X0"
+    ],
+    [
+      "80:9789:E0M0X0",
+      "80:9667:E0M0X0"
+    ],
+    [
+      "80:9B7A:E0M0X0",
+      "80:8303:E0M0X0"
+    ],
+    [
       "80:B996:E0M0X0",
       "80:A315:E0M0X0"
     ],
@@ -322,6 +334,126 @@
     [
       "80:BE01:E0M0X0",
       "80:D47B:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:86A1:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:86AF:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:86BD:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:86CB:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:86D6:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:86E1:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:86EC:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:86F7:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8702:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:870D:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8718:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8723:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:872E:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8739:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8744:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:874F:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8762:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:876D:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8778:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8783:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8797:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:87A2:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:87AD:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:87C1:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:87CC:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:87D7:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:87E2:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:87F6:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:8801:E0M0X0"
+    ],
+    [
+      "80:D3F9:E0M0X0",
+      "80:880C:E0M0X0"
     ],
     [
       "80:D484:E0M0X0",
@@ -26629,5 +26761,59 @@
     }
   ],
   "runtime_decoding": false,
-  "native_source_sha256": "08317bbe5c0988638cd3e837b8890674c8c3aed82bd79ac983fe96e9851f5ae5"
+  "native_source_sha256": "dc1bf7274d068c9a58d497b1e160cda62cfe9d98bd33fc8e555ea5d7ea6e78ba",
+  "entity_dispatch_proof": {
+    "source": "80:BB3A:E0M0X0",
+    "producer_rom_bytes": "DABD4500291F00AA7C3DBB",
+    "table": "80:BB3D-BB5C",
+    "targets": [
+      47969,
+      48258,
+      48288,
+      48318,
+      48386,
+      48102,
+      48042,
+      48535,
+      47406,
+      47431,
+      48225,
+      48166,
+      47967,
+      47967,
+      47967,
+      47967
+    ],
+    "index_mask": 31,
+    "runtime_decoding": false
+  },
+  "full_collision_queue_return_proof": {
+    "native_exit": "80:D3F9 RTS after D3D8 PLA discarded D381 local return",
+    "outer_calls": "literal JSR CA82 caller list in entity_return_proof",
+    "observed_caller": "80:87BE JSR CA82 ->80:87C1",
+    "queue_path_rom": "209BDAF007A901009D6A0060",
+    "synthetic_stress_origin": "genuine pending fuel pickup collision underflow; only queue occupancy altered for isolated test",
+    "runtime_decoding": false
+  },
+  "exhausted_lives_return_proof": {
+    "call": "80:8300 JSR 9529",
+    "dispatch": "80:9529 PEA 807F; LDX $76; JMP ($9531,X)",
+    "native_exit": "80:9AF3 DEC lives -> 9AFE JMP 9B79; PLB; RTS 9B7A",
+    "continuation": "80:8303:E0M0X0",
+    "call_rom_bytes": "202995",
+    "exit_rom_bytes": "AB60",
+    "stack_return_word": "8302",
+    "runtime_decoding": false
+  },
+  "passenger_return_proof": {
+    "call": "80:9664 JSR 9725",
+    "continuation": "80:9667:E0M0X0",
+    "helper_returns": [
+      "80:9786:E0M0X0",
+      "80:9789:E0M0X0"
+    ],
+    "call_rom_bytes": "202597",
+    "exit_rom_bytes": "FA3860FA1860",
+    "runtime_decoding": false
+  }
 }

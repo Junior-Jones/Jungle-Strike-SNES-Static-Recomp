@@ -128,3 +128,64 @@ js_stop_reason js_renderer_v10_29_sample_mode1_bg(const js_ppu_v09c *ppu,
     js_renderer_v10_28_bgr555_to_rgb8(sample->bgr555, &sample->rgb);
     return JS_STOP_NONE;
 }
+
+/* All reads below are side-effect-free renderer reads. Eagerly recording each
+   pixel's status must not surface a later pixel's unknown CGRAM early. */
+js_stop_reason js_renderer_v10_29_sample_mode1_bg_cached(
+    const js_ppu_v09c *ppu,unsigned layer,uint16_t screen_x,uint16_t screen_y,
+    js_bg_scanline_cache_v10_29 *cache,js_bg_pixel_v10_29 *sample) {
+    uint32_t group;
+    unsigned index,i;
+    js_bg_layer_desc_v10_29 desc;
+    js_bg_coordinate_v10_28 coord;
+    js_tilemap_entry_v10_28 entry;
+    js_bg_character_v10_28 chr;
+    uint8_t row[8],color_valid[16]={0};
+    uint16_t raw,colors[16]={0};
+    js_rgb8_v10_28 rgb[16];
+    js_stop_reason color_stop[16],stop;
+    if(!cache||!ppu||!sample||layer>=3u||ppu->bg_mode!=1u||
+       (ppu->mosaic_enabled&(uint8_t)(1u<<layer)))
+        return js_renderer_v10_29_sample_mode1_bg(ppu,layer,screen_x,screen_y,sample);
+    group=((uint32_t)screen_x+ppu->layer[layer].h_scroll)>>3u;
+    index=((unsigned)screen_x+ppu->layer[layer].h_scroll)&7u;
+    if(cache->valid&&cache->ppu==ppu&&cache->layer==layer&&cache->y==screen_y&&cache->group==group){
+        *sample=cache->pixels[index];return cache->stops[index];
+    }
+    cache->ppu=ppu;cache->layer=(uint8_t)layer;cache->y=screen_y;cache->group=group;cache->valid=1u;
+    memset(cache->pixels,0,sizeof(cache->pixels));
+    stop=js_renderer_v10_29_mode1_layer_desc(ppu,layer,&desc);
+    if(stop==JS_STOP_NONE&&!desc.active)stop=JS_STOP_V10_29_RENDERER_INACTIVE_LAYER;
+    if(stop==JS_STOP_NONE)stop=js_renderer_v10_28_bg_resolve_coordinate(ppu,layer,screen_x,screen_y,&coord);
+    if(stop==JS_STOP_NONE)stop=js_renderer_v10_28_read_vram_word(ppu,coord.tilemap_word_address,&raw);
+    if(stop==JS_STOP_NONE){
+        js_renderer_v10_28_decode_tilemap_entry(raw,&entry);
+        stop=js_renderer_v10_28_bg_resolve_character(&entry,coord.logical_tile_pixels,coord.fine_x,coord.fine_y,&chr);
+    }
+    if(stop==JS_STOP_NONE)stop=js_renderer_v10_28_decode_tile_row(ppu,ppu->layer[layer].chr_address,chr.tile_index,desc.bpp,chr.pixel_y,row);
+    if(stop!=JS_STOP_NONE){
+        for(i=0;i<8u;i++)cache->stops[i]=stop;
+        *sample=cache->pixels[index];return stop;
+    }
+    for(i=0;i<8u;i++){
+        js_bg_pixel_v10_29 *pixel=cache->pixels+i;
+        unsigned color=row[entry.hflip?7u-i:i];
+        pixel->layer=(uint8_t)layer;pixel->bpp=desc.bpp;pixel->palette=entry.palette;
+        pixel->color_index=(uint8_t)color;pixel->tile_priority=entry.priority;
+        pixel->tilemap_word_address=coord.tilemap_word_address;pixel->tilemap_raw=raw;
+        pixel->character_index=chr.tile_index;
+        pixel->priority_slot=entry.priority?desc.priority_high_slot:desc.priority_low_slot;
+        cache->stops[i]=JS_STOP_NONE;
+        if(!color){pixel->transparent=1;continue;}
+        pixel->cgram_index=(uint16_t)((unsigned)entry.palette*desc.palette_stride+color);
+        if(pixel->cgram_index>=128u){pixel->cgram_index=0;cache->stops[i]=JS_STOP_V10_29_RENDERER_INVALID_ARGUMENT;continue;}
+        if(!color_valid[color]){
+            color_valid[color]=1;
+            color_stop[color]=js_renderer_v10_28_read_cgram_color(ppu,pixel->cgram_index,colors+color);
+            if(color_stop[color]==JS_STOP_NONE)js_renderer_v10_28_bgr555_to_rgb8(colors[color],rgb+color);
+        }
+        cache->stops[i]=color_stop[color];
+        if(color_stop[color]==JS_STOP_NONE){pixel->bgr555=colors[color];pixel->rgb=rgb[color];}
+    }
+    *sample=cache->pixels[index];return cache->stops[index];
+}

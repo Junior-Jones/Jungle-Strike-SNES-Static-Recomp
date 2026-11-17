@@ -1,0 +1,395 @@
+{
+  "rom_sha256": "8d812ea4fa897274116f7f43bc689e110f1cfbd3f7eb3a1737c2a85d36369159",
+  "root": "80:8938:E0M0X0",
+  "root_proof": "80:8934 JSL A0:8000 -> A0:81F8 RTL ->80:8938",
+  "new_contexts": 11,
+  "new_unique_rom_bytes": 41,
+  "production_contexts": 28833,
+  "production_rom_bytes": 66708,
+  "return_edges": [
+    [
+      "81:C336:E0M0X0",
+      "80:893C:E0M0X0"
+    ],
+    [
+      "81:C727:E0M0X0",
+      "80:8946:E0M0X0"
+    ],
+    [
+      "A0:81F8:E0M0X0",
+      "80:8938:E0M0X0"
+    ]
+  ],
+  "frontiers": [
+    {
+      "type": "DYNAMIC_JUMP_UNPROVED",
+      "at_context": "80:952E:E0M0X0",
+      "status": "unsupported-fail-closed",
+      "proof_id": ""
+    }
+  ],
+  "rows": [
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35128,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:8938:E0M0X0"
+      },
+      "file_offsets": [
+        2360,
+        2361,
+        2362,
+        2363
+      ],
+      "bytes": "2214C381",
+      "opcode": 34,
+      "mnemonic": "JSL",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "call",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "81:C314:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35132,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:893C:E0M0X0"
+      },
+      "file_offsets": [
+        2364,
+        2365,
+        2366
+      ],
+      "bytes": "A228C7",
+      "opcode": 162,
+      "mnemonic": "LDX",
+      "mode": "imm_x",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:893F:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35135,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:893F:E0M0X0"
+      },
+      "file_offsets": [
+        2367,
+        2368,
+        2369
+      ],
+      "bytes": "A98100",
+      "opcode": 169,
+      "mnemonic": "LDA",
+      "mode": "imm_m",
+      "length": 3,
+      "flow": "fallthrough",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:8942:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35138,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:8942:E0M0X0"
+      },
+      "file_offsets": [
+        2370,
+        2371,
+        2372,
+        2373
+      ],
+      "bytes": "228DC581",
+      "opcode": 34,
+      "mnemonic": "JSL",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "call",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "call",
+          "target": "81:C58D:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35142,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:8946:E0M0X0"
+      },
+      "file_offsets": [
+        2374,
+        2375,
+        2376,
+        2377
+      ],
+      "bytes": "AF9A117F",
+      "opcode": 175,
+      "mnemonic": "LDA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:894A:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35146,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:894A:E0M0X0"
+      },
+      "file_offsets": [
+        2378,
+        2379,
+        2380,
+        2381
+      ],
+      "bytes": "8F96117F",
+      "opcode": 143,
+      "mnemonic": "STA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:894E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35150,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:894E:E0M0X0"
+      },
+      "file_offsets": [
+        2382,
+        2383,
+        2384,
+        2385
+      ],
+      "bytes": "AF9C117F",
+      "opcode": 175,
+      "mnemonic": "LDA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:8952:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35154,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:8952:E0M0X0"
+      },
+      "file_offsets": [
+        2386,
+        2387,
+        2388,
+        2389
+      ],
+      "bytes": "8F98117F",
+      "opcode": 143,
+      "mnemonic": "STA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:8956:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35158,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:8956:E0M0X0"
+      },
+      "file_offsets": [
+        2390,
+        2391,
+        2392,
+        2393
+      ],
+      "bytes": "AF9E117F",
+      "opcode": 175,
+      "mnemonic": "LDA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:895A:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35162,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:895A:E0M0X0"
+      },
+      "file_offsets": [
+        2394,
+        2395,
+        2396,
+        2397
+      ],
+      "bytes": "8FB80800",
+      "opcode": 143,
+      "mnemonic": "STA",
+      "mode": "abs_long",
+      "length": 4,
+      "flow": "fallthrough",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "fallthrough",
+          "target": "80:895E:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    },
+    {
+      "context": {
+        "pbr": 128,
+        "pc": 35166,
+        "e": 0,
+        "m": 0,
+        "x": 0,
+        "id": "80:895E:E0M0X0"
+      },
+      "file_offsets": [
+        2398,
+        2399,
+        2400
+      ],
+      "bytes": "4C1881",
+      "opcode": 76,
+      "mnemonic": "JMP",
+      "mode": "abs",
+      "length": 3,
+      "flow": "jump",
+      "roots": [
+        "failure_return"
+      ],
+      "max_call_depth": 0,
+      "successors": [
+        {
+          "kind": "jump",
+          "target": "80:8118:E0M0X0",
+          "proof_id": ""
+        }
+      ]
+    }
+  ],
+  "runtime_decoding": false,
+  "native_source_sha256": "4cba358c3bab061972fc53768480e13ae38cdb47b1f71305fc9c1811d6a337c6"
+}

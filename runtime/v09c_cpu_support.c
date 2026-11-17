@@ -1,6 +1,8 @@
 #include <string.h>
 #include "jungle/cpu_v08c_internal.h"
 #include "jungle/status_closure.h"
+#include "jungle/vehicle_closure.h"
+#include "jungle/end_closure.h"
 #include "jungle/status_v09c.h"
 #include "jungle/machine_v08c.h"
 typedef struct js_sha256_ctx { uint32_t h[8]; uint64_t bits; uint8_t buf[64]; size_t used; } js_sha256_ctx;
@@ -384,6 +386,12 @@ js_stop_reason js_v05c_validate_current_key(js_machine_v05c *m, const js_static_
            jungle_damage_dispatch_allowed(m->diagnostic_current_key,current))return JS_STOP_NONE;
         if(failure==JS_STOP_UNPROVED_RETURN_CONTEXT &&
            jungle_status_return_allowed(m->diagnostic_current_key,current))return JS_STOP_NONE;
+        if(failure==JS_STOP_UNPROVED_DYNAMIC_TARGET &&
+           jungle_vehicle_indirect_allowed(m->diagnostic_current_key,current))return JS_STOP_NONE;
+        if(failure==JS_STOP_UNPROVED_RETURN_CONTEXT &&
+           jungle_vehicle_return_allowed(m->diagnostic_current_key,current))return JS_STOP_NONE;
+        if(failure==JS_STOP_UNPROVED_RETURN_CONTEXT &&
+           jungle_end_return_allowed(m->diagnostic_current_key,current))return JS_STOP_NONE;
         /* ROM A0:A011/A0:A0AC load $8452; A0:84C7 advances to $84CF.
            ROM A0:9FFD/A0:A0EB load $8387; A0:83F3 advances to $83FB. The complete entry/poll regions are statically compiled. */
         if(failure==JS_STOP_UNPROVED_DYNAMIC_TARGET &&

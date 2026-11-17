@@ -38,6 +38,22 @@ typedef struct js_bg_pixel_v10_29 {
     js_rgb8_v10_28 rgb;
 } js_bg_pixel_v10_29;
 
+/* Caller-owned scratch for one immutable PPU scanline/layer. Reset (zero) at
+   each scanline or after any PPU memory/register change. No cache enters PPU,
+   machine or snapshots; each eight-pixel character row is decoded once. */
+typedef struct js_bg_scanline_cache_v10_29 {
+    const js_ppu_v09c *ppu;
+    uint32_t group;
+    uint16_t y;
+    uint8_t layer,valid;
+    js_bg_pixel_v10_29 pixels[8];
+    js_stop_reason stops[8];
+} js_bg_scanline_cache_v10_29;
+
+js_stop_reason js_renderer_v10_29_sample_mode1_bg_cached(
+    const js_ppu_v09c *ppu,unsigned layer,uint16_t screen_x,uint16_t screen_y,
+    js_bg_scanline_cache_v10_29 *cache,js_bg_pixel_v10_29 *sample);
+
 /* Exact source-reached phase guard proved from the CC50 PPU state block at A0:D7DB. */
 js_stop_reason js_renderer_v10_29_validate_source_configuration(const js_ppu_v09c *ppu);
 

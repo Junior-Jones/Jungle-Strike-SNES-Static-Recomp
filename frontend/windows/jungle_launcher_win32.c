@@ -12,6 +12,7 @@
 #include "jungle_input_latch.h"
 
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -54,6 +55,7 @@
 #define ID_SCREENSHOT 1021
 #define ID_AUTO_RUN 1022
 #define ID_WIDESCREEN 1023
+#define ID_EXPERIMENTAL_60FPS 1026
 #define ID_SNAPSHOT_SAVE_CURRENT 1024
 #define ID_SNAPSHOT_LOAD_CURRENT 1025
 #define ID_SNAPSHOT_SLOT_BASE 5000
@@ -165,6 +167,7 @@ static HWND g_settings_button;
 static HWND g_fullscreen_checkbox;
 static HWND g_auto_run_checkbox;
 static HWND g_widescreen_checkbox;
+static HWND g_fps60_checkbox;
 static HWND g_rom_path;
 static HWND g_status;
 static HWND g_info_window;
@@ -269,6 +272,7 @@ static void close_audio(void);
 static int open_audio(int show_error);
 static void update_controls(void);
 static void capture_core_screenshot(void);
+static void reset_capture_history(void);
 static int capture_core_screenshot_to(const wchar_t *base_directory,
                                       wchar_t *saved_path,
                                       size_t saved_capacity);
@@ -708,6 +712,7 @@ static void set_toolbar_visible(int visible) {
     ShowWindow(g_fullscreen_checkbox, command);
     ShowWindow(g_auto_run_checkbox, command);
     ShowWindow(g_widescreen_checkbox, command);
+    ShowWindow(g_fps60_checkbox, command);
     ShowWindow(g_status, command);
 }
 
@@ -776,6 +781,7 @@ static void reset_game(void) {
         update_controls();
         return;
     }
+    reset_capture_history();
     (void)open_audio(1);
     g_loaded_snapshot_slot = -1;
     g_audio_last_fifo_dropped = 0u;
@@ -806,6 +812,8 @@ static void update_controls(void) {
     EnableWindow(g_fullscreen_checkbox, !loading);
     EnableWindow(g_auto_run_checkbox, !loading);
     EnableWindow(g_widescreen_checkbox, !loading);
+    EnableWindow(g_fps60_checkbox,!loading&&!g_game);
+    EnableMenuItem(g_menu,ID_EXPERIMENTAL_60FPS,MF_BYCOMMAND|((loading||g_game)?MF_GRAYED:MF_ENABLED));
     EnableMenuItem(g_menu,ID_WIDESCREEN,MF_BYCOMMAND|(loading?MF_GRAYED:MF_ENABLED));
     set_accessible_control_text(g_browse_button,
                                 rom_path_known() ? L"&Run" : L"&Browse", 1);
@@ -832,6 +840,8 @@ static void update_controls(void) {
                    BST_CHECKED ? MF_CHECKED : MF_UNCHECKED));
     CheckMenuItem(g_menu,ID_WIDESCREEN,MF_BYCOMMAND|
         (g_frontend_settings.widescreen?MF_CHECKED:MF_UNCHECKED));
+    CheckMenuItem(g_menu,ID_EXPERIMENTAL_60FPS,MF_BYCOMMAND|
+        (g_frontend_settings.experimental_60fps?MF_CHECKED:MF_UNCHECKED));
     if (!g_presentation_hidden) DrawMenuBar(g_window);
 }
 
@@ -1130,6 +1140,8 @@ static int save_bgra_bmp(const wchar_t *path, const uint8_t *pixels,
     return 1;
 }
 
+#include "jungle_capture_diagnostics_win32.h"
+
 static int capture_core_screenshot_to(const wchar_t *base_directory,
                                       wchar_t *saved_path,
                                       size_t saved_capacity) {
@@ -1137,7 +1149,6 @@ static int capture_core_screenshot_to(const wchar_t *base_directory,
     uint32_t *pixels = NULL;
     wchar_t directory[PATH_CAPACITY];
     wchar_t path[PATH_CAPACITY];
-    SYSTEMTIME now;
     uint32_t frame_height=g_game?jungle_recomp_frame_height(g_game):JUNGLE_RECOMP_FRAME_HEIGHT;
     uint32_t frame_width=g_game?jungle_recomp_frame_width(g_game):256u;
     uint32_t frame = g_game ? jungle_recomp_current_frame(g_game) : 0u;
@@ -1161,13 +1172,9 @@ static int capture_core_screenshot_to(const wchar_t *base_directory,
         free(pixels);
         return 0;
     }
-    GetLocalTime(&now);
-    (void)_snwprintf(path, PATH_CAPACITY,
-               L"%s\\jungle-frame-%08u-%04u%02u%02u-%02u%02u%02u-%03u.bmp",
-               directory, frame, (unsigned)now.wYear, (unsigned)now.wMonth,
-               (unsigned)now.wDay, (unsigned)now.wHour, (unsigned)now.wMinute,
-               (unsigned)now.wSecond, (unsigned)now.wMilliseconds);
-    path[PATH_CAPACITY - 1u] = L'\0';
+    if(!capture_output_path(path,directory,frame,frame_width,frame_height,0)){
+        free(pixels);return 0;
+    }
     if (!save_bgra_bmp(path, (const uint8_t *)pixels,
                        (int)frame_width,
                        (int)frame_height,
@@ -1178,7 +1185,7 @@ static int capture_core_screenshot_to(const wchar_t *base_directory,
     free(pixels);
     if (saved_path && saved_capacity)
         copy_wide(saved_path, saved_capacity, path);
-    return 1;
+    return write_capture_report(path,frame_width,frame_height,0);
 }
 
 static int capture_fullscreen_screenshot_to(wchar_t *saved_path,
@@ -1192,7 +1199,6 @@ static int capture_fullscreen_screenshot_to(wchar_t *saved_path,
     void *pixels = NULL;
     wchar_t directory[PATH_CAPACITY];
     wchar_t path[PATH_CAPACITY];
-    SYSTEMTIME now;
     uint32_t frame = g_game ? jungle_recomp_current_frame(g_game) : 0u;
     int width;
     int height;
@@ -1231,21 +1237,13 @@ static int capture_fullscreen_screenshot_to(wchar_t *saved_path,
     join_wide_path(directory, PATH_CAPACITY, g_executable_directory,
                    L"Screenshots");
     if (!ensure_directory_tree(directory)) goto cleanup;
-    GetLocalTime(&now);
-    (void)_snwprintf(
-        path, PATH_CAPACITY,
-        L"%s\\jungle-fullscreen-%dx%d-frame-%08u-%04u%02u%02u-%02u%02u%02u-%03u.bmp",
-        directory, width, height, frame, (unsigned)now.wYear,
-        (unsigned)now.wMonth, (unsigned)now.wDay, (unsigned)now.wHour,
-        (unsigned)now.wMinute, (unsigned)now.wSecond,
-        (unsigned)now.wMilliseconds);
-    path[PATH_CAPACITY - 1u] = L'\0';
+    if(!capture_output_path(path,directory,frame,(unsigned)width,(unsigned)height,1))goto cleanup;
     if (!save_bgra_bmp(path, (const uint8_t *)pixels, width, height,
                        width * 4))
         goto cleanup;
     if (saved_path && saved_capacity)
         copy_wide(saved_path, saved_capacity, path);
-    saved = 1;
+    saved = write_capture_report(path,(unsigned)width,(unsigned)height,1);
 
 cleanup:
     if (previous && previous != HGDI_ERROR)
@@ -1290,14 +1288,16 @@ static void capture_core_screenshot(void) {
     wchar_t path[PATH_CAPACITY];
     wchar_t status[PATH_CAPACITY + 96u];
     uint32_t frame = g_game ? jungle_recomp_current_frame(g_game) : 0u;
+    int capture_result;
     int resume_audio = g_game && !g_paused &&
                        jungle_audio_output_is_open(&g_audio_output);
     if (resume_audio) jungle_audio_output_pause(&g_audio_output);
-    if (!(g_fullscreen_active ?
+    capture_result=(g_fullscreen_active ?
           capture_fullscreen_screenshot_to(
               path, sizeof(path) / sizeof(path[0])) :
           capture_core_screenshot_to(
-              NULL, path, sizeof(path) / sizeof(path[0])))) {
+              NULL, path, sizeof(path) / sizeof(path[0])));
+    if (!capture_result) {
         if (resume_audio) {
             jungle_audio_output_resume(&g_audio_output);
             reset_pacing_clock();
@@ -1312,9 +1312,9 @@ static void capture_core_screenshot(void) {
         reset_pacing_clock();
     }
     (void)_snwprintf(status, sizeof(status) / sizeof(status[0]),
-                     g_fullscreen_active ?
-                         L"Fullscreen screenshot saved at frame %u: %s" :
-                         L"Screenshot saved at frame %u: %s",
+                     capture_result==2?
+                         L"Image saved, but its diagnostic log could not be saved. Frame %u: %s":
+                         L"Screenshot and diagnostic log saved at frame %u: %s",
                      frame, path);
     status[(sizeof(status) / sizeof(status[0])) - 1u] = L'\0';
     set_status(status);
@@ -1525,6 +1525,7 @@ static int load_snapshot_slot(int slot) {
         set_status_utf8(error[0] ? error : "Snapshot load failed.");
         return 0;
     }
+    reset_capture_history();
     (void)jungle_recomp_audio_discard(g_game);
     jungle_audio_output_flush(&g_audio_output);
     jungle_audio_output_pause(&g_audio_output);
@@ -1926,6 +1927,18 @@ static void show_widescreen_notice_once(void) {
     }
 }
 
+static void show_fps60_notice_once(void) {
+    if(g_frontend_settings.fps60_notice_shown||IsWindow(g_info_window))return;
+    g_info_resume_after=0;
+    show_information_window(L"Notice",
+        L"This is an experimental 60FPS, any issues you find please give feedback",520,230);
+    if(IsWindow(g_info_window)){
+        g_frontend_settings.fps60_notice_shown=1;
+        if(!jungle_frontend_settings_win32_save(&g_frontend_settings,g_settings_ini_path))
+            set_status(L"Notice shown, but its one-time setting could not be saved.");
+    }
+}
+
 static HWND create_getting_started_text(HWND parent, const wchar_t *text,
                                         int x, int y, int width, int height,
                                         HFONT font) {
@@ -2279,12 +2292,15 @@ static int advance_one_frame(void) {
     JungleStrikeRecompFrameResult result;
     wchar_t message[512];
     uint16_t input_mask;
+    LARGE_INTEGER capture_started;
     if (!g_game) return 1;
+    QueryPerformanceCounter(&capture_started);
     memset(&result, 0, sizeof(result));
     input_mask = current_gameplay_input();
     if (!jungle_recomp_advance_streamed(
             g_game, input_mask, 1u, pump_audio_during_render,
             &g_audio_output, &result)) {
+        record_capture_history(input_mask,capture_started,0);
         stop_game_on_core_failure();
         return 0;
     }
@@ -2292,6 +2308,7 @@ static int advance_one_frame(void) {
         jungle_input_latch_consume(&g_keyboard_input, input_mask);
     jungle_audio_output_pump(&g_audio_output, g_game);
     report_audio_diagnostic_events();
+    record_capture_history(input_mask,capture_started,1);
     maybe_flush_battery_sram_win32();
     if (jungle_recomp_audio_overflowed(g_game)) {
         jungle_recomp_audio_clear_overflow(g_game);
@@ -2398,6 +2415,7 @@ static void layout_controls(HWND window) {
     MoveWindow(g_auto_run_checkbox, 610, 10,
                width > 820 ? 88 : 82, 26, TRUE);
     MoveWindow(g_widescreen_checkbox,704,10,108,26,TRUE);
+    MoveWindow(g_fps60_checkbox,820,10,100,26,TRUE);
     MoveWindow(g_status, 12, 48, width - 24, 24, TRUE);
 }
 
@@ -3067,6 +3085,7 @@ static HMENU create_menu_bar(void) {
     AppendMenuW(settings, MF_STRING, ID_FULLSCREEN,
                 L"Use &Full Screen When Playing");
     AppendMenuW(settings,MF_STRING,ID_WIDESCREEN,L"&Widescreen");
+    AppendMenuW(settings,MF_STRING,ID_EXPERIMENTAL_60FPS,L"&60 FPS");
     AppendMenuW(settings, MF_STRING, ID_AUTO_RUN,
                 L"&Auto-Run at Startup");
     AppendMenuW(settings, MF_SEPARATOR, 0, NULL);
@@ -3186,6 +3205,8 @@ static void initialize_paths_and_settings(void) {
     }
     SendMessageW(g_widescreen_checkbox,BM_SETCHECK,
                  g_frontend_settings.widescreen?BST_CHECKED:BST_UNCHECKED,0);
+    SendMessageW(g_fps60_checkbox,BM_SETCHECK,
+                 g_frontend_settings.experimental_60fps?BST_CHECKED:BST_UNCHECKED,0);
     SendMessageW(g_fullscreen_checkbox, BM_SETCHECK,
                  g_frontend_settings.fullscreen_on_play ?
                  BST_CHECKED : BST_UNCHECKED, 0);
@@ -3230,6 +3251,8 @@ static void save_current_settings_on_exit(void) {
         g_frontend_settings.fullscreen_on_play =
             SendMessageW(g_fullscreen_checkbox, BM_GETCHECK, 0, 0) ==
             BST_CHECKED;
+    if(IsWindow(g_fps60_checkbox))
+        g_frontend_settings.experimental_60fps=SendMessageW(g_fps60_checkbox,BM_GETCHECK,0,0)==BST_CHECKED;
     if(IsWindow(g_widescreen_checkbox))
         g_frontend_settings.widescreen=SendMessageW(g_widescreen_checkbox,BM_GETCHECK,0,0)==BST_CHECKED;
     (void)jungle_frontend_settings_win32_save(
@@ -3293,6 +3316,10 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                 0,L"BUTTON",L"&Widescreen",
                 WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
                 704,10,108,26,window,(HMENU)(INT_PTR)ID_WIDESCREEN,g_instance,NULL);
+            g_fps60_checkbox=CreateWindowExW(
+                0,L"BUTTON",L"&60 FPS",
+                WS_CHILD|WS_VISIBLE|WS_TABSTOP|BS_AUTOCHECKBOX,
+                820,10,100,26,window,(HMENU)(INT_PTR)ID_EXPERIMENTAL_60FPS,g_instance,NULL);
             /* The ROM path remains internal. Status is exposed as native
                static text, not as an editable toolbar field. */
             g_rom_path = CreateWindowExW(
@@ -3314,6 +3341,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             set_control_font(g_fullscreen_checkbox);
             set_control_font(g_auto_run_checkbox);
             set_control_font(g_widescreen_checkbox);
+            set_control_font(g_fps60_checkbox);
             set_control_font(g_rom_path);
             set_control_font(g_status);
             SendMessageW(g_fullscreen_checkbox, BM_SETCHECK, BST_UNCHECKED, 0);
@@ -3327,7 +3355,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
 
         case WM_GETMINMAXINFO: {
             MINMAXINFO *info = (MINMAXINFO *)lparam;
-            info->ptMinTrackSize.x = 850;
+            info->ptMinTrackSize.x = 950;
             info->ptMinTrackSize.y = 580;
             return 0;
         }
@@ -3371,6 +3399,18 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                         &g_frontend_settings, g_settings_ini_path);
                     update_controls();
                     return 0;
+                case ID_EXPERIMENTAL_60FPS: {
+                    if(InterlockedCompareExchange(&g_loading,0,0)!=0||g_game)return 0;
+                    if((HWND)lparam!=g_fps60_checkbox){
+                        LRESULT checked=SendMessageW(g_fps60_checkbox,BM_GETCHECK,0,0);
+                        SendMessageW(g_fps60_checkbox,BM_SETCHECK,checked==BST_CHECKED?BST_UNCHECKED:BST_CHECKED,0);
+                    }
+                    g_frontend_settings.experimental_60fps=SendMessageW(g_fps60_checkbox,BM_GETCHECK,0,0)==BST_CHECKED;
+                    if(!jungle_frontend_settings_win32_save(&g_frontend_settings,g_settings_ini_path))
+                        set_status(L"60 FPS changed, but the setting could not be saved.");
+                    if(g_frontend_settings.experimental_60fps)show_fps60_notice_once();
+                    update_controls();return 0;
+                }
                 case ID_WIDESCREEN: {
                     char error[256];int enabled;
                     if(InterlockedCompareExchange(&g_loading,0,0)!=0)return 0;
@@ -3417,7 +3457,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                         static const wchar_t about[] =
                             L"F1 - Open the Welcome window\r\n\r\n"
                             L"Jungle Strike (SNES) Static Recompilation\r\n"
-                            L"Version 1.1.0\r\n\r\n"
+                            L"Version 1.2.0\r\n\r\n"
                             L"Title: Jungle Strike\r\n"
                             L"Region: USA/Canada NTSC\r\n"
                             L"File type: .sfc";
@@ -3528,8 +3568,10 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             (void)flush_battery_sram_win32(1, NULL, 0u);
             jungle_recomp_destroy(g_game);
             g_game = result->game;
+            reset_capture_history();
             {char wide_error[256];
-                (void)jungle_recomp_set_widescreen(g_game,g_frontend_settings.widescreen,wide_error,sizeof(wide_error));}
+                (void)jungle_recomp_set_widescreen(g_game,g_frontend_settings.widescreen,wide_error,sizeof(wide_error));
+                (void)jungle_recomp_set_experimental_60fps(g_game,g_frontend_settings.experimental_60fps,wide_error,sizeof(wide_error));}
             g_loaded_snapshot_slot = -1;
             g_sram_last_flush_frame = 0u;
             g_audio_last_fifo_dropped = 0u;
@@ -3592,6 +3634,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             }
             jungle_recomp_destroy(g_game);
             g_game = NULL;
+            reset_capture_history();
             jungle_gamepad_win32_shutdown(&g_gamepad);
             PostQuitMessage(0);
             return 0;

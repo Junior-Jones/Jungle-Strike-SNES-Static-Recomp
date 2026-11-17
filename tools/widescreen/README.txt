@@ -4,6 +4,12 @@ Widescreen verification tools
 These developer tools open no visible window and are not linked into Launcher.
 A supplied, verified ROM is required for gameplay checks; it is not packaged.
 
+These original display-only tools use native timing (60 FPS feature off) and
+legacy V1 input checkpoints. Guest-state comparisons intentionally serialize a
+V1 projection from a copy, excluding host display history. Production saves
+use V3 when wide or enhanced mode is active; their full presentation payload
+is tested separately and must not be compared across different display modes.
+
 The jungle-snapshot-display-test target accepts ROM, SNAPSHOT, OUTPUT_DIRECTORY.
 It checks immediate 512x288 output after a paused load and mode toggles, without
 running an emulated frame. Native crop/HUD/console pixels and serialized guest
