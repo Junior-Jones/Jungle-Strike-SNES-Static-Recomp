@@ -1,0 +1,171 @@
+{
+  "$schema": "https://recomplauncher.com/schema/recomplauncher.json",
+  "format": 1,
+  "name": "Jungle Strike",
+  "repo": "Junior-Jones/Jungle-Strike-SNES-Static-Recomp",
+  "game": {
+    "kind": "iso",
+    "label": "Your own exact unheadered USA/Canada NTSC SNES ROM of Jungle Strike (.sfc or .smc, 2,097,152 bytes).",
+    "dumps": [
+      {
+        "name": "Jungle Strike USA/Canada NTSC",
+        "size": 2097152,
+        "crc32": "335487E5"
+      }
+    ]
+  },
+  "start": {
+    "program": [
+      "Launcher.exe"
+    ],
+    "args": [
+      "--game",
+      "{game}"
+    ]
+  },
+  "config": [
+    {
+      "id": "main",
+      "format": "ini",
+      "file": [
+        {
+          "path": "{install}/settings.ini"
+        }
+      ],
+      "game_path": "ROM/Path"
+    }
+  ],
+  "saves": [
+    "{install}/Saves"
+  ],
+  "folders": {
+    "saves": [
+      {
+        "path": "{install}/Saves"
+      }
+    ],
+    "logs": [
+      {
+        "path": "{install}/Logs"
+      }
+    ]
+  },
+  "settings": [
+    {
+      "id": "fullscreen",
+      "label": "Full screen on Play",
+      "help": "Open gameplay full screen or in a window.",
+      "in": "main",
+      "choices": [
+        {
+          "label": "Off",
+          "set": {
+            "General/FullScreenOnPlay": "0"
+          }
+        },
+        {
+          "label": "On",
+          "set": {
+            "General/FullScreenOnPlay": "1"
+          }
+        }
+      ],
+      "defaults": {
+        "General/FullScreenOnPlay": "0"
+      }
+    },
+    {
+      "id": "widescreen",
+      "label": "Widescreen (experimental)",
+      "help": "Show more scenery at 16:9; original 4:3 remains available.",
+      "in": "main",
+      "choices": [
+        {
+          "label": "Original",
+          "set": {
+            "Display/Widescreen": "0"
+          }
+        },
+        {
+          "label": "Widescreen",
+          "set": {
+            "Display/Widescreen": "1"
+          }
+        }
+      ],
+      "defaults": {
+        "Display/Widescreen": "0"
+      }
+    },
+    {
+      "id": "fps60",
+      "label": "60 FPS (experimental)",
+      "help": "Smoother contact checks, menus and colours while retaining native movement speed and weapon intervals.",
+      "in": "main",
+      "choices": [
+        {
+          "label": "Original",
+          "set": {
+            "Display/Experimental60FPS": "0"
+          }
+        },
+        {
+          "label": "60 FPS",
+          "set": {
+            "Display/Experimental60FPS": "1"
+          }
+        }
+      ],
+      "defaults": {
+        "Display/Experimental60FPS": "0"
+      }
+    },
+    {
+      "id": "input",
+      "label": "Input source",
+      "help": "Choose keyboard or gamepad. If no controller is connected, keyboard input remains available.",
+      "in": "main",
+      "choices": [
+        {
+          "label": "Keyboard",
+          "set": {
+            "Input/Source": "0"
+          }
+        },
+        {
+          "label": "Gamepad",
+          "set": {
+            "Input/Source": "1"
+          }
+        }
+      ],
+      "defaults": {
+        "Input/Source": "0"
+      }
+    }
+  ],
+  "actions": [
+    {
+      "id": "saves",
+      "label": "Saves",
+      "open": "saves"
+    },
+    {
+      "id": "logs",
+      "label": "Logs",
+      "open": "logs"
+    }
+  ],
+  "exit_codes": {
+    "2": "Invalid launch options. Use --game followed by the ROM path.",
+    "3": "Select the exact unheadered Jungle Strike USA/Canada NTSC ROM (2,097,152 bytes). Check Logs for details.",
+    "4": "Jungle Strike could not start. Check Logs for details.",
+    "5": "The Jungle Strike static core stopped. Check the newest diagnostic log in Logs."
+  },
+  "requires": [
+    "start",
+    "settings.ini",
+    "settings.choices",
+    "exit_codes"
+  ]
+}

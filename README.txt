@@ -1,8 +1,49 @@
 Jungle Strike (SNES) Static Recompilation - Source
-Version 1.2.0
+Version 1.2.1
 
 This package contains the Jungle Strike-specific static core and its native
 Windows Launcher frontend. The original game ROM is not included.
+
+Window drawing update
+---------------------
+
+Version 1.2.1 composes Windows repaint operations in a reusable off-screen
+buffer, then copies the completed image to the window. This removes the
+intermediate black clear that can contribute to redraw flashes. The buffer
+is replaced safely on resize and released when the window closes. Controls,
+gameplay timing and the normal/widescreen image remain unchanged.
+
+RecompLauncher and command-line use
+---------------------------------
+
+Get it on RecompLauncher:
+https://recomplauncher.com/game/jungle-strike-snes-static-recomp
+
+The included recomplauncher.json goes beside Launcher.exe. It describes the
+supported ROM, existing fullscreen/widescreen/60 FPS/input-source settings,
+Saves backups and Logs. The launcher writes only the declared INI keys.
+
+Direct launch (also suitable for Steam shortcuts):
+  Launcher.exe --game "Rom\Jungle Strike.sfc" --port-widescreen --60fps
+
+--game accepts a quoted ROM path, or --game=PATH. It skips the Welcome/Run
+steps for that launch and still verifies the complete supported ROM identity.
+Relative paths are resolved before the app changes its working directory.
+--port-widescreen / --no-port-widescreen select wide/original presentation;
+--port-wide-canvas is an alias for widescreen. --60fps / --no-60fps and
+--fullscreen / --windowed override those saved options. Arguments can be
+combined or reordered; the last selection wins. Values use the normal saved
+settings behavior. Opening without arguments retains the existing frontend.
+Invalid options exit2; invalid ROMs exit3; loader failures exit4; direct-launch
+static-core failures exit5. Failures do not block on a dialog in direct mode;
+runtime diagnostics use .log files in Logs. No new frontend controls are added.
+
+Input verification for1.2.1 includes all nine mission starts, 36 paired
+movement/turning/firing routes in4:3/16:9 with60 FPS off/on, and complete
+state/pixel comparisons. All12 keyboard and12 default SDL virtual-pad actions
+pass per mission. All20 supported controller controls and hot-plug/reconnect
+were checked. No physical controller was detected, so hardware-specific
+compatibility is not claimed. Default keyboard Start/Select are G/T.
 
 Running the application
 -----------------------
