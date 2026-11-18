@@ -5,6 +5,8 @@
 #include <windows.h>
 #include <commdlg.h>
 #include <commctrl.h>
+#include <shellapi.h>
+#include "jungle_launch_options.h"
 
 #include "jungle_audio_output_dsound_win32.h"
 #include "jungle_frontend_settings_win32.h"
@@ -25,6 +27,9 @@
 #define GETTING_STARTED_CLASS_NAME L"JungleStrikeGettingStartedWindow"
 #define APP_TITLE L"Jungle Strike (SNES)"
 #define LAUNCHER_TITLE L"Launcher"
+static JungleLaunchOptions g_launch_options = {NULL, -1, -1, -1};
+static wchar_t g_launch_game_path[2048];
+static int g_exit_code;
 #define WM_APP_LOAD_COMPLETE (WM_APP + 1u)
 #define WM_APP_STARTUP_CONTINUE (WM_APP + 2u)
 #define HOST_TIMER_100NS_PER_SECOND 10000000u
@@ -392,6 +397,26 @@ static void join_wide_path(wchar_t *output, size_t capacity,
     else
         (void)_snwprintf(output, capacity, L"%s\\%s", directory, name);
     output[capacity - 1u] = L'\0';
+}
+
+static void fail_direct_launch(int code, const wchar_t *message) {
+    wchar_t directory[PATH_CAPACITY], path[PATH_CAPACITY];
+    char text[PATH_CAPACITY * 3u];
+    FILE *file;
+    g_exit_code = code;
+    if (wide_to_utf8(message, text, sizeof(text))) {
+        fprintf(stderr, "Jungle Strike: %s\n", text);
+        OutputDebugStringW(message);
+        if (g_executable_directory[0]) {
+            join_wide_path(directory, PATH_CAPACITY, g_executable_directory, L"Logs");
+            if (ensure_directory_tree(directory)) {
+                join_wide_path(path, PATH_CAPACITY, directory, L"Launcher-Failure.log");
+                file = _wfopen(path, L"wb");
+                if (file) { fprintf(file,"Jungle Strike %s\nExit %d\n%s\n",JUNGLE_STATIC_CORE_VERSION_STRING,code,text); fclose(file); }
+            }
+        }
+    }
+    if (g_window) DestroyWindow(g_window);
 }
 
 static int find_sfc_rom(const wchar_t *directory, wchar_t *path,
@@ -901,6 +926,11 @@ static void stop_game_on_core_failure(void) {
                  sizeof(detail) / sizeof(detail[0]));
     log_written = write_static_core_failure_log(
         log_path, sizeof(log_path) / sizeof(log_path[0]));
+    if (g_launch_game_path[0]) {
+        g_exit_code = 5;
+        DestroyWindow(g_window);
+        return;
+    }
     if (log_written) {
         (void)_snwprintf(status, sizeof(status) / sizeof(status[0]),
                          L"Static core stopped fail-closed. Diagnostic log: %s",
@@ -1032,6 +1062,7 @@ static void start_rom_load(int play_after_load) {
     }
     path = (wchar_t *)calloc((size_t)length + 1u, sizeof(*path));
     if (!path) {
+        if (g_launch_game_path[0]) { fail_direct_launch(4,L"Not enough memory to start the loader."); return; }
         MessageBoxW(g_window, L"Not enough memory to start the loader.",
                     APP_TITLE, MB_OK | MB_ICONERROR);
         return;
@@ -1041,6 +1072,7 @@ static void start_rom_load(int play_after_load) {
     request = (LoaderRequest *)calloc(1u, sizeof(*request));
     if (!request) {
         free(path);
+        if (g_launch_game_path[0]) { fail_direct_launch(4,L"Not enough memory to start the loader."); return; }
         MessageBoxW(g_window, L"Not enough memory to start the loader.",
                     APP_TITLE, MB_OK | MB_ICONERROR);
         return;
@@ -1061,6 +1093,7 @@ static void start_rom_load(int play_after_load) {
         free(request->path);
         free(request);
         InterlockedExchange(&g_loading, 0);
+        if (g_launch_game_path[0]) { fail_direct_launch(4,L"Unable to create the loader thread."); return; }
         (void)open_audio(1);
         if (g_resume_after_failed_load) play_game();
         else {
@@ -1269,7 +1302,7 @@ static int write_static_core_failure_log(wchar_t *saved_path,
     GetLocalTime(&now);
     (void)_snwprintf(
         log_path, PATH_CAPACITY,
-        L"%s\\Static-Core-Failure-%04u%02u%02u-%02u%02u%02u-%03u.txt",
+        L"%s\\Static-Core-Failure-%04u%02u%02u-%02u%02u%02u-%03u.log",
         logs_directory, (unsigned)now.wYear, (unsigned)now.wMonth,
         (unsigned)now.wDay, (unsigned)now.wHour, (unsigned)now.wMinute,
         (unsigned)now.wSecond, (unsigned)now.wMilliseconds);
@@ -2419,13 +2452,62 @@ static void layout_controls(HWND window) {
     MoveWindow(g_status, 12, 48, width - 24, 24, TRUE);
 }
 
+typedef struct PaintBuffer {
+    HDC dc;
+    HBITMAP bitmap;
+    HGDIOBJ original_bitmap;
+    int width, height;
+} PaintBuffer;
+
+static PaintBuffer g_paint_buffer;
+
+static void release_paint_buffer(void) {
+    if (g_paint_buffer.dc) {
+        SelectObject(g_paint_buffer.dc, g_paint_buffer.original_bitmap);
+        DeleteObject(g_paint_buffer.bitmap);
+        DeleteDC(g_paint_buffer.dc);
+    }
+    memset(&g_paint_buffer, 0, sizeof(g_paint_buffer));
+}
+
+static HDC prepare_paint_buffer(HDC display, int width, int height) {
+    PaintBuffer next;
+    if (width <= 0 || height <= 0) return NULL;
+    if (g_paint_buffer.dc && g_paint_buffer.width == width &&
+        g_paint_buffer.height == height) return g_paint_buffer.dc;
+    memset(&next, 0, sizeof(next));
+    next.dc = CreateCompatibleDC(display);
+    if (!next.dc) return NULL;
+    next.bitmap = CreateCompatibleBitmap(display, width, height);
+    if (!next.bitmap) { DeleteDC(next.dc); return NULL; }
+    next.original_bitmap = SelectObject(next.dc, next.bitmap);
+    if (!next.original_bitmap || next.original_bitmap == HGDI_ERROR) {
+        DeleteObject(next.bitmap);
+        DeleteDC(next.dc);
+        return NULL;
+    }
+    next.width = width;
+    next.height = height;
+    release_paint_buffer();
+    g_paint_buffer = next;
+    return next.dc;
+}
+
 static void paint_window(HWND window) {
     PAINTSTRUCT paint;
-    HDC dc = BeginPaint(window, &paint);
+    HDC display = BeginPaint(window, &paint);
+    HDC dc;
     RECT client;
     RECT render_area;
+    int frame_drawn = 0;
     const uint32_t *pixels = jungle_recomp_frame_bgra(g_game);
     GetClientRect(window, &client);
+    dc = prepare_paint_buffer(display, client.right, client.bottom);
+    if (!dc) {
+        /* Retain the previous image if a replacement buffer is unavailable. */
+        EndPaint(window, &paint);
+        return;
+    }
     FillRect(dc, &client, (HBRUSH)GetStockObject(BLACK_BRUSH));
     render_area.left = 0;
     render_area.top = g_presentation_hidden ? 0 : 80;
@@ -2490,13 +2572,7 @@ static void paint_window(HWND window) {
                           frame_height,
                           pixels, &bitmap, DIB_RGB_COLORS, SRCCOPY) !=
             GDI_ERROR) {
-            uint32_t emu_frame = jungle_recomp_current_frame(g_game);
-            /* Repaints caused by expose/resize messages do not represent a
-               newly presented emulated frame. */
-            if (emu_frame != g_presented_last_emu_frame) {
-                g_presented_last_emu_frame = emu_frame;
-                ++g_presented_frame_count;
-            }
+            frame_drawn = 1;
         }
     } else {
         const wchar_t *message =
@@ -2508,6 +2584,16 @@ static void paint_window(HWND window) {
         render_area.right -= 24;
         DrawTextW(dc, message, -1, &render_area,
                   DT_LEFT | DT_TOP | DT_WORDBREAK);
+    }
+    /* Clear and compose privately, then expose only the completed image. */
+    if (BitBlt(display, 0, 0, client.right, client.bottom, dc, 0, 0, SRCCOPY) &&
+        frame_drawn) {
+        uint32_t emu_frame = jungle_recomp_current_frame(g_game);
+        /* Expose/resize repaints do not count as new emulated frames. */
+        if (emu_frame != g_presented_last_emu_frame) {
+            g_presented_last_emu_frame = emu_frame;
+            ++g_presented_frame_count;
+        }
     }
     EndPaint(window, &paint);
 }
@@ -3152,6 +3238,9 @@ static void initialize_paths_and_settings(void) {
         !unified_exists && GetFileAttributesW(legacy_frontend_ini) !=
             INVALID_FILE_ATTRIBUTES ? legacy_frontend_ini :
                                       g_settings_ini_path);
+    if (g_launch_options.widescreen >= 0) g_frontend_settings.widescreen = g_launch_options.widescreen;
+    if (g_launch_options.fps60 >= 0) g_frontend_settings.experimental_60fps = g_launch_options.fps60;
+    if (g_launch_options.fullscreen >= 0) g_frontend_settings.fullscreen_on_play = g_launch_options.fullscreen;
     jungle_audio_settings_load(
         &g_audio_settings,
         !unified_exists && GetFileAttributesW(legacy_audio_ini) !=
@@ -3217,7 +3306,10 @@ static void continue_startup_after_welcome(void) {
     if (!g_startup_pending) return;
     g_startup_pending = 0;
     reset_pacing_clock();
-    if (g_adjacent_rom_found) {
+    if (g_launch_game_path[0]) {
+        SetWindowTextW(g_rom_path, g_launch_game_path);
+        start_rom_load(1);
+    } else if (g_adjacent_rom_found) {
         if (g_frontend_settings.auto_run_on_load) {
             set_status(L"ROM found in the Rom folder. Loading and starting Jungle Strike.");
             start_rom_load(1);
@@ -3546,6 +3638,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                 return 0;
             }
             if (!result) {
+                if (g_launch_game_path[0]) { fail_direct_launch(4,L"The ROM loader ended without a result."); return 0; }
                 set_status(L"The loader ended without a result.");
                 (void)open_audio(1);
                 if (g_resume_after_failed_load) play_game();
@@ -3553,6 +3646,13 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
                 return 0;
             }
             if (!result->game) {
+                if (g_launch_game_path[0]) {
+                    wchar_t error[512];
+                    copy_wide(error,ARRAY_COUNT(error),result->error[0]?result->error:L"The required Jungle Strike ROM could not be loaded.");
+                    free(result);
+                    fail_direct_launch(3,error);
+                    return 0;
+                }
                 MessageBoxW(window,
                             result->error[0] ? result->error :
                             L"The static recompilation could not be started.",
@@ -3589,7 +3689,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             free(result);
             g_paused = 1;
             jungle_input_latch_reset(&g_keyboard_input);
-            (void)open_audio(1);
+            (void)open_audio(g_launch_game_path[0] ? 0 : 1);
             InvalidateRect(window, NULL, TRUE);
             update_controls();
             if (g_play_after_load) {
@@ -3623,6 +3723,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             return 0;
 
         case WM_DESTROY:
+            release_paint_buffer();
             save_current_settings_on_exit();
             if (g_frame_timer) (void)CancelWaitableTimer(g_frame_timer);
             (void)flush_battery_sram_win32(1, NULL, 0u);
@@ -3636,7 +3737,7 @@ static LRESULT CALLBACK window_proc(HWND window, UINT message,
             g_game = NULL;
             reset_capture_history();
             jungle_gamepad_win32_shutdown(&g_gamepad);
-            PostQuitMessage(0);
+            PostQuitMessage(g_exit_code);
             return 0;
 
         default:
@@ -3654,6 +3755,18 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previous,
     WNDCLASSEXW getting_started_class;
     MSG message;
     (void)previous;
+    {
+        int argc = 0;
+        LPWSTR *argv = CommandLineToArgvW(GetCommandLineW(), &argc);
+        const wchar_t *error = argv ? jungle_parse_launch_options(argc,argv,&g_launch_options) : L"Unable to read launch options.";
+        if (!error && g_launch_options.game_path) {
+            DWORD n=GetFullPathNameW(g_launch_options.game_path,ARRAY_COUNT(g_launch_game_path),g_launch_game_path,NULL);
+            if (!n || n>=ARRAY_COUNT(g_launch_game_path)) error=L"The --game ROM path is invalid or too long.";
+        }
+        if (argv) LocalFree(argv);
+        g_launch_options.game_path = NULL;
+        if (error) { fail_direct_launch(2,error); return 2; }
+    }
 
     g_instance = instance;
     {
@@ -3741,7 +3854,7 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE previous,
     ShowWindow(g_window, SW_SHOWNORMAL);
     UpdateWindow(g_window);
     g_startup_pending = 1;
-    if (!g_frontend_settings.welcome_shown) {
+    if (!g_launch_game_path[0] && !g_frontend_settings.welcome_shown) {
         show_getting_started_window(1);
     } else {
         continue_startup_after_welcome();

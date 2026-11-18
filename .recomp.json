@@ -29,7 +29,7 @@
       "url": "https://github.com/Junior-Jones/Jungle-Strike-SNES-Static-Recomp/blob/main/README.txt"
     }
   ],
-  "notes": "Version 1.2.0 adds optional experimental 60 FPS processing for previously slower game work and palette effects, retaining original timing, alongside normal 4:3 and optional 16:9 Widescreen. Each feature has one saved setting shared by its toolbar checkbox and Settings menu item.",
+  "notes": "Version 1.2.1 improves buffered Windows drawing, adds RecompLauncher direct ROM launch and existing settings integration, and verifies keyboard/SDL virtual-gamepad input across nine mission starts. Normal 4:3, experimental 16:9 Widescreen and optional experimental 60 FPS retain their existing controls and native movement timing.",
   "tags": [
     "Shoot 'em up",
     "60 FPS"

@@ -65,6 +65,8 @@ else()
   )
 endif()
 enable_testing()
+add_executable(jungle-launch-contract-test jungle_launch_contract_test.c)
+add_test(NAME jungle_launch_contract COMMAND jungle-launch-contract-test)
 add_test(NAME jungle_frontend_core_reset COMMAND jungle-frontend-core-test)
 
 add_executable(jungle-input-contract-test
@@ -232,6 +234,9 @@ add_custom_command(TARGET jungle-strike-launcher POST_BUILD
   COMMAND "${CMAKE_COMMAND}" -E copy_if_different
     "${JUNGLE_SOURCE_ROOT}/SNES9X-LICENSE.txt"
     "$<TARGET_FILE_DIR:jungle-strike-launcher>/SNES9X-LICENSE.txt"
+  COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+    "${JUNGLE_SOURCE_ROOT}/recomplauncher.json"
+    "$<TARGET_FILE_DIR:jungle-strike-launcher>/recomplauncher.json"
   VERBATIM
 )
 
